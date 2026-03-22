@@ -17,6 +17,7 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<IRecipeRepository, RecipeRepository>();
+        services.AddScoped<IMealPlanRepository, MealPlanRepository>();
 
         return services;
     }

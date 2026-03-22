@@ -14,7 +14,7 @@
 ### Phase 3: Infrastructure layer
 - [x] Implement EF Core entity configurations (fluent API)
 - [x] Implement RecipeRepository
-- [ ] Implement MealPlanRepository
+- [x] Implement MealPlanRepository
 - [ ] Implement ShoppingListRepository
 - [ ] Implement FridgeRepository
 - [ ] Implement RecipeScraper (JSON-LD + ingredient parsing) per specs/recipe-scraper.md
@@ -55,6 +55,7 @@
 - [ ] Add auto-migration on API startup
 
 ## Completed
+- [x] Implement MealPlanRepository
 - [x] Implement RecipeMatcher domain service per specs/domain-model.md
 - [x] Write domain unit tests for RecipeMatcher
 - [x] Implement IngredientAggregator domain service per specs/domain-model.md
