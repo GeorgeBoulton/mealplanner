@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="../build/MealPlanner.Api.props" />
-</Project>

@@ -1,6 +1,0 @@
-{
-  "MealPlanner.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/mnt\/c\/users\/georg\/source\/repos\/mealplanner\/src\/MealPlanner.Api",
-  "MealPlanner.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/mnt\/c\/users\/georg\/source\/repos\/mealplanner\/src\/MealPlanner.Application",
-  "MealPlanner.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/mnt\/c\/users\/georg\/source\/repos\/mealplanner\/src\/MealPlanner.Domain",
-  "MealPlanner.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/mnt\/c\/users\/georg\/source\/repos\/mealplanner\/src\/MealPlanner.Infrastructure"
-}
