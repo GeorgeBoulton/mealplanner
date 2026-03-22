@@ -3,7 +3,7 @@
 ## Priority items (not yet implemented)
 
 ### Phase 1: Solution scaffolding
-- [ ] Create solution and all project skeletons with correct dependencies (Domain has zero refs to other projects)
+- [x] Create solution and all project skeletons with correct dependencies (Domain has zero refs to other projects)
 - [ ] Set up docker-compose.yml with Postgres
 - [ ] Configure EF Core DbContext and initial migration
 - [ ] Set up test projects with NUnit + Awesome Assertions + AutoFixture + NSubstitute
@@ -64,7 +64,7 @@
 - [ ] Add auto-migration on API startup
 
 ## Completed
-(nothing yet)
+- [x] Create solution and all project skeletons with correct dependencies
 
 ## Known issues
 (none yet)

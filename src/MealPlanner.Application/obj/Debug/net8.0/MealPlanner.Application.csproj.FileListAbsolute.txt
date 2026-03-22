@@ -1,0 +1,16 @@
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/bin/Debug/net8.0/MealPlanner.Application.deps.json
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/bin/Debug/net8.0/MealPlanner.Application.dll
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/bin/Debug/net8.0/MealPlanner.Application.pdb
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/bin/Debug/net8.0/MealPlanner.Domain.dll
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/bin/Debug/net8.0/MealPlanner.Domain.pdb
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/obj/Debug/net8.0/MealPlanner.Application.csproj.AssemblyReference.cache
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/obj/Debug/net8.0/MealPlanner.Application.GeneratedMSBuildEditorConfig.editorconfig
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/obj/Debug/net8.0/MealPlanner.Application.AssemblyInfoInputs.cache
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/obj/Debug/net8.0/MealPlanner.Application.AssemblyInfo.cs
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/obj/Debug/net8.0/MealPlanner.Application.csproj.CoreCompileInputs.cache
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/obj/Debug/net8.0/MealPlanner.Application.sourcelink.json
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/obj/Debug/net8.0/MealPlanner.Application.csproj.CopyComplete
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/obj/Debug/net8.0/MealPlanner.Application.dll
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/obj/Debug/net8.0/refint/MealPlanner.Application.dll
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/obj/Debug/net8.0/MealPlanner.Application.pdb
+/mnt/c/users/georg/source/repos/mealplanner/src/MealPlanner.Application/obj/Debug/net8.0/ref/MealPlanner.Application.dll

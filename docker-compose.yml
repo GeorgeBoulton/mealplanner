@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: mealplanner-db
+    environment:
+      POSTGRES_USER: mealplanner
+      POSTGRES_PASSWORD: mealplanner
+      POSTGRES_DB: mealplanner
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: src/MealPlanner.Api/Dockerfile
+    container_name: mealplanner-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Database=mealplanner;Username=mealplanner;Password=mealplanner
+    ports:
+      - "5000:8080"
+    depends_on:
+      - db
+
+  web:
+    build:
+      context: .
+      dockerfile: src/MealPlanner.Web/Dockerfile
+    container_name: mealplanner-web
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ApiBaseUrl=http://api:8080
+    ports:
+      - "5001:8080"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:

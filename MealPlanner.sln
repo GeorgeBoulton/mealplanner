@@ -1,0 +1,85 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8A7C30FD-4327-4071-8B78-F88617DBF08F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MealPlanner.Domain", "src\MealPlanner.Domain\MealPlanner.Domain.csproj", "{A44B155C-E682-4F33-8828-97CC230E452C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MealPlanner.Application", "src\MealPlanner.Application\MealPlanner.Application.csproj", "{FB958999-6437-48F7-B667-81D710853C04}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MealPlanner.Infrastructure", "src\MealPlanner.Infrastructure\MealPlanner.Infrastructure.csproj", "{871CE0E7-B84F-4CE6-BCF3-3A2AC51B5EB6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MealPlanner.Api", "src\MealPlanner.Api\MealPlanner.Api.csproj", "{115364DD-0E94-49AC-B769-06ABE5338B82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MealPlanner.Web", "src\MealPlanner.Web\MealPlanner.Web.csproj", "{FB4837B9-A764-484B-875E-7AFC2BF4E980}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{8EB83443-081D-4BCC-829A-33F74AE59C01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MealPlanner.Domain.Tests", "tests\MealPlanner.Domain.Tests\MealPlanner.Domain.Tests.csproj", "{E2AF19E4-5FEA-428B-BF42-CCD70F096443}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MealPlanner.Application.Tests", "tests\MealPlanner.Application.Tests\MealPlanner.Application.Tests.csproj", "{2DA47DE6-2814-49E7-9669-83B3D77DAA2F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MealPlanner.Infrastructure.Tests", "tests\MealPlanner.Infrastructure.Tests\MealPlanner.Infrastructure.Tests.csproj", "{23B50C4C-0021-49B8-8C93-1CEA0369D656}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MealPlanner.Api.Tests", "tests\MealPlanner.Api.Tests\MealPlanner.Api.Tests.csproj", "{DE2A7D24-3433-4D50-8E0C-0B4060A49030}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A44B155C-E682-4F33-8828-97CC230E452C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A44B155C-E682-4F33-8828-97CC230E452C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A44B155C-E682-4F33-8828-97CC230E452C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A44B155C-E682-4F33-8828-97CC230E452C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB958999-6437-48F7-B667-81D710853C04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB958999-6437-48F7-B667-81D710853C04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB958999-6437-48F7-B667-81D710853C04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB958999-6437-48F7-B667-81D710853C04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{871CE0E7-B84F-4CE6-BCF3-3A2AC51B5EB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{871CE0E7-B84F-4CE6-BCF3-3A2AC51B5EB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{871CE0E7-B84F-4CE6-BCF3-3A2AC51B5EB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{871CE0E7-B84F-4CE6-BCF3-3A2AC51B5EB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{115364DD-0E94-49AC-B769-06ABE5338B82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{115364DD-0E94-49AC-B769-06ABE5338B82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{115364DD-0E94-49AC-B769-06ABE5338B82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{115364DD-0E94-49AC-B769-06ABE5338B82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB4837B9-A764-484B-875E-7AFC2BF4E980}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB4837B9-A764-484B-875E-7AFC2BF4E980}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB4837B9-A764-484B-875E-7AFC2BF4E980}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB4837B9-A764-484B-875E-7AFC2BF4E980}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2AF19E4-5FEA-428B-BF42-CCD70F096443}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2AF19E4-5FEA-428B-BF42-CCD70F096443}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2AF19E4-5FEA-428B-BF42-CCD70F096443}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2AF19E4-5FEA-428B-BF42-CCD70F096443}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DA47DE6-2814-49E7-9669-83B3D77DAA2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DA47DE6-2814-49E7-9669-83B3D77DAA2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DA47DE6-2814-49E7-9669-83B3D77DAA2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DA47DE6-2814-49E7-9669-83B3D77DAA2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23B50C4C-0021-49B8-8C93-1CEA0369D656}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23B50C4C-0021-49B8-8C93-1CEA0369D656}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23B50C4C-0021-49B8-8C93-1CEA0369D656}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23B50C4C-0021-49B8-8C93-1CEA0369D656}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE2A7D24-3433-4D50-8E0C-0B4060A49030}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE2A7D24-3433-4D50-8E0C-0B4060A49030}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE2A7D24-3433-4D50-8E0C-0B4060A49030}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE2A7D24-3433-4D50-8E0C-0B4060A49030}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A44B155C-E682-4F33-8828-97CC230E452C} = {8A7C30FD-4327-4071-8B78-F88617DBF08F}
+		{FB958999-6437-48F7-B667-81D710853C04} = {8A7C30FD-4327-4071-8B78-F88617DBF08F}
+		{871CE0E7-B84F-4CE6-BCF3-3A2AC51B5EB6} = {8A7C30FD-4327-4071-8B78-F88617DBF08F}
+		{115364DD-0E94-49AC-B769-06ABE5338B82} = {8A7C30FD-4327-4071-8B78-F88617DBF08F}
+		{FB4837B9-A764-484B-875E-7AFC2BF4E980} = {8A7C30FD-4327-4071-8B78-F88617DBF08F}
+		{E2AF19E4-5FEA-428B-BF42-CCD70F096443} = {8EB83443-081D-4BCC-829A-33F74AE59C01}
+		{2DA47DE6-2814-49E7-9669-83B3D77DAA2F} = {8EB83443-081D-4BCC-829A-33F74AE59C01}
+		{23B50C4C-0021-49B8-8C93-1CEA0369D656} = {8EB83443-081D-4BCC-829A-33F74AE59C01}
+		{DE2A7D24-3433-4D50-8E0C-0B4060A49030} = {8EB83443-081D-4BCC-829A-33F74AE59C01}
+	EndGlobalSection
+EndGlobal
