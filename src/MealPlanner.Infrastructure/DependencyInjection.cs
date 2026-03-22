@@ -1,4 +1,6 @@
+using MealPlanner.Domain.Interfaces;
 using MealPlanner.Infrastructure.Data;
+using MealPlanner.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +15,8 @@ public static class DependencyInjection
     {
         services.AddDbContext<MealPlannerDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+
+        services.AddScoped<IRecipeRepository, RecipeRepository>();
 
         return services;
     }

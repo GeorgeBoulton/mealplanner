@@ -63,6 +63,16 @@ Rules:
   document them in fix_plan.md.
 - After implementing, tests MUST pass. Do not commit with failing tests.
 - When writing tests, include comments explaining WHY the test exists.
+- Use records for value objects and DTOs, not classes with static Create
+  methods. Only entities that EF Core tracks need to be classes. Domain
+  entities should use private setters and constructors for encapsulation,
+  but value objects like RecipeIngredient, ScrapedRecipe, ScrapedIngredient
+  should be records.
+- ONE class/record/interface per file. No exceptions. For example, if you create
+  ScrapedRecipe and ScrapedIngredient, they go in separate files.
+- Files go in the correct folder for what they are. ScrapedRecipe is NOT an interface — it does not belong in
+  the Interfaces folder. Interfaces folder is ONLY for interfaces
+  (IRecipeRepository, IRecipeScraper etc).
 
 When all tests pass and the build is clean, create a git tag incrementing
 from the last tag. Start at 0.0.1 if no tags exist.

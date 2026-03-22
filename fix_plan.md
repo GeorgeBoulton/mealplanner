@@ -13,7 +13,7 @@
 
 ### Phase 3: Infrastructure layer
 - [x] Implement EF Core entity configurations (fluent API)
-- [ ] Implement RecipeRepository
+- [x] Implement RecipeRepository
 - [ ] Implement MealPlanRepository
 - [ ] Implement ShoppingListRepository
 - [ ] Implement FridgeRepository
