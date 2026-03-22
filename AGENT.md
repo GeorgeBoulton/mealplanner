@@ -65,6 +65,7 @@ docker compose up --build
 - Web: http://localhost:5200
 
 ## Migrations
+# Note: requires dotnet-ef installed globally: dotnet tool install --global dotnet-ef
 ```bash
 # Create
 dotnet ef migrations add <Name> -p src/MealPlanner.Infrastructure -s src/MealPlanner.Api

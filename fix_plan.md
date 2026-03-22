@@ -4,18 +4,10 @@
 
 ### Phase 1: Solution scaffolding
 - [x] Create solution and all project skeletons with correct dependencies (Domain has zero refs to other projects)
-- [ ] Configure EF Core DbContext and initial migration
-- [ ] Set up test projects with NUnit + Awesome Assertions + AutoFixture + NSubstitute
 
 ### Phase 2: Domain layer
-- [ ] Implement Recipe entity and RecipeIngredient value object per specs/domain-model.md
-- [ ] Implement RecipeCategory and ShoppingCategory enums
-- [ ] Implement MealPlan and MealPlanEntry entities per specs/domain-model.md
-- [ ] Implement ShoppingList and ShoppingListItem entities per specs/domain-model.md
-- [ ] Implement FridgeItem entity per specs/domain-model.md
 - [ ] Implement IngredientAggregator domain service per specs/domain-model.md
 - [ ] Implement RecipeMatcher domain service per specs/domain-model.md
-- [ ] Define repository interfaces in Domain (IRecipeRepository, IMealPlanRepository, etc)
 - [ ] Write domain unit tests for IngredientAggregator
 - [ ] Write domain unit tests for RecipeMatcher
 
@@ -65,6 +57,14 @@
 ## Completed
 - [x] Create solution and all project skeletons with correct dependencies
 - [x] Set up docker-compose.yml with Postgres
+- [x] Configure EF Core DbContext and initial migration
+- [x] Set up test projects with NUnit + Awesome Assertions + AutoFixture + NSubstitute
+- [x] Implement Recipe entity and RecipeIngredient value object per specs/domain-model.md
+- [x] Implement RecipeCategory and ShoppingCategory enums
+- [x] Implement MealPlan and MealPlanEntry entities per specs/domain-model.md
+- [x] Implement ShoppingList and ShoppingListItem entities per specs/domain-model.md
+- [x] Implement FridgeItem entity per specs/domain-model.md
+- [x] Define repository interfaces in Domain (IRecipeRepository, IMealPlanRepository, etc)
 
 ## Known issues
 (none yet)
