@@ -17,7 +17,7 @@
 - [x] Implement MealPlanRepository
 - [x] Implement ShoppingListRepository
 - [x] Implement FridgeRepository
-- [ ] Implement RecipeScraper (JSON-LD + ingredient parsing) per specs/recipe-scraper.md
+- [x] Implement RecipeScraper (JSON-LD + ingredient parsing) per specs/recipe-scraper.md
 - [ ] Write infrastructure integration tests for repositories
 
 ### Phase 4: Application layer

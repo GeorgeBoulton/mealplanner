@@ -1,3 +1,5 @@
+using MealPlanner.Domain.Models;
+
 namespace MealPlanner.Domain.Interfaces;
 
 public interface IRecipeScraper
