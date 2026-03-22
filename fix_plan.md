@@ -22,7 +22,7 @@
 
 ### Phase 4: Application layer
 - [x] Create DTOs for all entities (request + response DTOs)
-- [ ] Implement RecipeService (CRUD + import)
+- [x] Implement RecipeService (CRUD + import)
 - [ ] Implement MealPlanService (CRUD + entry management)
 - [ ] Implement ShoppingListService (generate from meal plan, export)
 - [ ] Implement FridgeService (CRUD + recipe suggestions)
@@ -71,6 +71,7 @@
 - [x] Implement FridgeItem entity per specs/domain-model.md
 - [x] Define repository interfaces in Domain (IRecipeRepository, IMealPlanRepository, etc)
 - [x] Write infrastructure integration tests for repositories (41 tests across 4 repositories using Testcontainers/PostgreSQL)
+- [x] Implement RecipeService (CRUD + import) with IRecipeService interface, DI registration, and 10 unit tests
 
 ## Known issues
 (none yet)
