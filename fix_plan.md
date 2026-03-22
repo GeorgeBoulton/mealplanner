@@ -7,12 +7,12 @@
 
 ### Phase 2: Domain layer
 - [x] Implement IngredientAggregator domain service per specs/domain-model.md
-- [ ] Implement RecipeMatcher domain service per specs/domain-model.md
+- [x] Implement RecipeMatcher domain service per specs/domain-model.md
 - [x] Write domain unit tests for IngredientAggregator
-- [ ] Write domain unit tests for RecipeMatcher
+- [x] Write domain unit tests for RecipeMatcher
 
 ### Phase 3: Infrastructure layer
-- [ ] Implement EF Core entity configurations (fluent API)
+- [x] Implement EF Core entity configurations (fluent API)
 - [ ] Implement RecipeRepository
 - [ ] Implement MealPlanRepository
 - [ ] Implement ShoppingListRepository
@@ -55,6 +55,8 @@
 - [ ] Add auto-migration on API startup
 
 ## Completed
+- [x] Implement RecipeMatcher domain service per specs/domain-model.md
+- [x] Write domain unit tests for RecipeMatcher
 - [x] Implement IngredientAggregator domain service per specs/domain-model.md
 - [x] Write domain unit tests for IngredientAggregator
 - [x] Create solution and all project skeletons with correct dependencies

@@ -41,6 +41,10 @@ For each loop:
 6. RETRY: If FAIL, retry the build phase ONCE with the reviewer's
    feedback. If it fails a second time, document the issue in fix_plan.md
    and move to the next task.
+   
+7. STOP. Your loop is complete. Do NOT pick another task. Do NOT
+   read fix_plan.md again. Exit now. The next loop will handle
+   the next task.
 
 Rules:
 - You are the orchestrator. Your context should only contain the plan,
