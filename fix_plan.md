@@ -15,7 +15,7 @@
 - [x] Implement EF Core entity configurations (fluent API)
 - [x] Implement RecipeRepository
 - [x] Implement MealPlanRepository
-- [ ] Implement ShoppingListRepository
+- [x] Implement ShoppingListRepository
 - [ ] Implement FridgeRepository
 - [ ] Implement RecipeScraper (JSON-LD + ingredient parsing) per specs/recipe-scraper.md
 - [ ] Write infrastructure integration tests for repositories

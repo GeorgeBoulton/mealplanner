@@ -10,7 +10,7 @@
 #   ./ralph.sh help            # show this help
 
 # -- Config -------------------------------------------
-CLAUDE_FLAGS="--dangerously-skip-permissions --max-turns 50"
+CLAUDE_FLAGS="--print --dangerously-skip-permissions"
 SLEEP_BETWEEN=5
 # -----------------------------------------------------
 
@@ -46,12 +46,7 @@ banner() {
     echo ' | |_) / _` | | '\''_ \| '\''_ \ '
     echo ' |  _ < (_| | | |_) | | | |'
     echo ' |_| \_\__,_|_| .__/|_| |_|'
-    echo '    __        _|_|'
-    echo '   / / /\ /\(_) __ _ _ __ ___  _   _ _ __ ___  '
-    echo '  / / / / \ \ | / _` | '\''_ ` _ \| | | | '\''_ ` _ \ '
-    echo ' / /__\ \_/ / | (_| | | | | | | |_| | | | | | |'
-    echo ' \____/\___/|_|\__, |_| |_| |_|\__,_|_| |_| |_|'
-    echo '               |___/                            '
+    echo '             _|_|'
     echo -e "${RESET}"
 }
 
