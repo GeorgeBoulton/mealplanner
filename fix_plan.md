@@ -4,7 +4,6 @@
 
 ### Phase 1: Solution scaffolding
 - [x] Create solution and all project skeletons with correct dependencies (Domain has zero refs to other projects)
-- [ ] Set up docker-compose.yml with Postgres
 - [ ] Configure EF Core DbContext and initial migration
 - [ ] Set up test projects with NUnit + Awesome Assertions + AutoFixture + NSubstitute
 
@@ -65,6 +64,7 @@
 
 ## Completed
 - [x] Create solution and all project skeletons with correct dependencies
+- [x] Set up docker-compose.yml with Postgres
 
 ## Known issues
 (none yet)
