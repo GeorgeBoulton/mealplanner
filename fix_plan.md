@@ -16,7 +16,7 @@
 - [x] Implement RecipeRepository
 - [x] Implement MealPlanRepository
 - [x] Implement ShoppingListRepository
-- [ ] Implement FridgeRepository
+- [x] Implement FridgeRepository
 - [ ] Implement RecipeScraper (JSON-LD + ingredient parsing) per specs/recipe-scraper.md
 - [ ] Write infrastructure integration tests for repositories
 
