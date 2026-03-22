@@ -21,7 +21,7 @@
 - [x] Write infrastructure integration tests for repositories
 
 ### Phase 4: Application layer
-- [ ] Create DTOs for all entities (request + response DTOs)
+- [x] Create DTOs for all entities (request + response DTOs)
 - [ ] Implement RecipeService (CRUD + import)
 - [ ] Implement MealPlanService (CRUD + entry management)
 - [ ] Implement ShoppingListService (generate from meal plan, export)
