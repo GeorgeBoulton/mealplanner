@@ -18,7 +18,7 @@
 - [x] Implement ShoppingListRepository
 - [x] Implement FridgeRepository
 - [x] Implement RecipeScraper (JSON-LD + ingredient parsing) per specs/recipe-scraper.md
-- [ ] Write infrastructure integration tests for repositories
+- [x] Write infrastructure integration tests for repositories
 
 ### Phase 4: Application layer
 - [ ] Create DTOs for all entities (request + response DTOs)
@@ -70,6 +70,7 @@
 - [x] Implement ShoppingList and ShoppingListItem entities per specs/domain-model.md
 - [x] Implement FridgeItem entity per specs/domain-model.md
 - [x] Define repository interfaces in Domain (IRecipeRepository, IMealPlanRepository, etc)
+- [x] Write infrastructure integration tests for repositories (41 tests across 4 repositories using Testcontainers/PostgreSQL)
 
 ## Known issues
 (none yet)
