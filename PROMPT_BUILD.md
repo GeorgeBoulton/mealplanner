@@ -73,6 +73,9 @@ Rules:
 - Files go in the correct folder for what they are. ScrapedRecipe is NOT an interface — it does not belong in
   the Interfaces folder. Interfaces folder is ONLY for interfaces
   (IRecipeRepository, IRecipeScraper etc).
+- Ignore any late-arriving notifications from previous sessions or
+  background agents. Always read fix_plan.md and start working
+  immediately regardless of any other signals.
 
 When all tests pass and the build is clean, create a git tag incrementing
 from the last tag. Start at 0.0.1 if no tags exist.

@@ -23,7 +23,7 @@
 ### Phase 4: Application layer
 - [x] Create DTOs for all entities (request + response DTOs)
 - [x] Implement RecipeService (CRUD + import)
-- [ ] Implement MealPlanService (CRUD + entry management)
+- [x] Implement MealPlanService (CRUD + entry management)
 - [ ] Implement ShoppingListService (generate from meal plan, export)
 - [ ] Implement FridgeService (CRUD + recipe suggestions)
 - [ ] Write application layer unit tests
