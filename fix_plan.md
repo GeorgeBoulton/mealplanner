@@ -6,9 +6,9 @@
 - [x] Create solution and all project skeletons with correct dependencies (Domain has zero refs to other projects)
 
 ### Phase 2: Domain layer
-- [ ] Implement IngredientAggregator domain service per specs/domain-model.md
+- [x] Implement IngredientAggregator domain service per specs/domain-model.md
 - [ ] Implement RecipeMatcher domain service per specs/domain-model.md
-- [ ] Write domain unit tests for IngredientAggregator
+- [x] Write domain unit tests for IngredientAggregator
 - [ ] Write domain unit tests for RecipeMatcher
 
 ### Phase 3: Infrastructure layer
@@ -55,6 +55,8 @@
 - [ ] Add auto-migration on API startup
 
 ## Completed
+- [x] Implement IngredientAggregator domain service per specs/domain-model.md
+- [x] Write domain unit tests for IngredientAggregator
 - [x] Create solution and all project skeletons with correct dependencies
 - [x] Set up docker-compose.yml with Postgres
 - [x] Configure EF Core DbContext and initial migration
