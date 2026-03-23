@@ -26,7 +26,7 @@
 - [x] Implement MealPlanService (CRUD + entry management)
 - [x] Implement ShoppingListService (generate from meal plan, export)
 - [x] Implement FridgeService (CRUD + recipe suggestions)
-- [ ] Write application layer unit tests
+- [x] Write application layer unit tests
 
 ### Phase 5: API layer
 - [ ] Implement RecipesController per specs/api.md
@@ -74,6 +74,7 @@
 - [x] Implement RecipeService (CRUD + import) with IRecipeService interface, DI registration, and 10 unit tests
 - [x] Implement ShoppingListService (generate from meal plan, export, toggle-checked) with IShoppingListService interface and DI registration
 - [x] Implement FridgeService (CRUD + recipe suggestions) with IFridgeService interface, DI registration, and 9 unit tests
+- [x] Write application layer unit tests (48 tests across 4 services: RecipeService, MealPlanService, ShoppingListService, FridgeService)
 
 ## Known issues
 (none yet)

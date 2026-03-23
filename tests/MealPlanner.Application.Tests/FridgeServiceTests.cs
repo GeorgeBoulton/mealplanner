@@ -27,6 +27,10 @@ public class FridgeServiceTests
         _sut = new FridgeService(_fridgeRepository, _recipeRepository, _recipeMatcher);
     }
 
+    /// <summary>
+    /// Ensures the service returns an empty list rather than null when the
+    /// repository contains no fridge items, so callers never need to null-check.
+    /// </summary>
     [Test]
     public async Task GetAllAsync_WhenNoItems_ReturnsEmptyList()
     {
@@ -40,6 +44,10 @@ public class FridgeServiceTests
         await _fridgeRepository.Received(1).GetAllAsync(Arg.Any<CancellationToken>());
     }
 
+    /// <summary>
+    /// Ensures all fridge items returned by the repository are correctly mapped
+    /// to FridgeItemResponse DTOs, preserving name, quantity, and unit for each entry.
+    /// </summary>
     [Test]
     public async Task GetAllAsync_WithItems_ReturnsMappedResponses()
     {
@@ -60,6 +68,10 @@ public class FridgeServiceTests
         result[1].Unit.Should().BeNull();
     }
 
+    /// <summary>
+    /// Ensures the service returns null instead of throwing when the requested
+    /// fridge item does not exist, protecting callers from unhandled exceptions.
+    /// </summary>
     [Test]
     public async Task GetByIdAsync_WhenItemNotFound_ReturnsNull()
     {
@@ -72,6 +84,10 @@ public class FridgeServiceTests
         result.Should().BeNull();
     }
 
+    /// <summary>
+    /// Ensures a found fridge item is correctly mapped to a FridgeItemResponse
+    /// with all fields (id, name, quantity, unit) accurately transferred.
+    /// </summary>
     [Test]
     public async Task GetByIdAsync_WhenItemFound_ReturnsMappedResponse()
     {
@@ -89,6 +105,10 @@ public class FridgeServiceTests
         result.Unit.Should().Be("g");
     }
 
+    /// <summary>
+    /// Ensures CreateAsync builds a FridgeItem from the request, persists it via
+    /// the repository's AddAsync, and returns a response that reflects the supplied data.
+    /// </summary>
     [Test]
     public async Task CreateAsync_CreatesItemWithCorrectDataAndCallsAddAsync()
     {
@@ -107,6 +127,10 @@ public class FridgeServiceTests
             Arg.Any<CancellationToken>());
     }
 
+    /// <summary>
+    /// Ensures UpdateAsync returns null instead of throwing when the target item
+    /// does not exist, and that the repository's UpdateAsync is never called in that case.
+    /// </summary>
     [Test]
     public async Task UpdateAsync_WhenItemNotFound_ReturnsNull()
     {
@@ -120,6 +144,10 @@ public class FridgeServiceTests
         await _fridgeRepository.DidNotReceive().UpdateAsync(Arg.Any<FridgeItem>(), Arg.Any<CancellationToken>());
     }
 
+    /// <summary>
+    /// Ensures UpdateAsync applies all changed fields to the existing item, delegates
+    /// persistence to the repository's UpdateAsync, and returns the updated response.
+    /// </summary>
     [Test]
     public async Task UpdateAsync_WhenItemFound_UpdatesItemAndCallsRepositoryUpdateAsync()
     {
@@ -140,6 +168,10 @@ public class FridgeServiceTests
             Arg.Any<CancellationToken>());
     }
 
+    /// <summary>
+    /// Ensures DeleteAsync delegates to the repository with the correct id and
+    /// returns true to signal successful deletion to the caller.
+    /// </summary>
     [Test]
     public async Task DeleteAsync_CallsRepositoryDeleteAsyncAndReturnsTrue()
     {
@@ -152,6 +184,11 @@ public class FridgeServiceTests
         await _fridgeRepository.Received(1).DeleteAsync(id, Arg.Any<CancellationToken>());
     }
 
+    /// <summary>
+    /// Ensures GetSuggestionsAsync wires the real RecipeMatcher with live fridge
+    /// and recipe data, returning suggestions with a non-zero match percentage when
+    /// the fridge contains ingredients required by a recipe.
+    /// </summary>
     [Test]
     public async Task GetSuggestionsAsync_ReturnsSuggestionsFromRecipeMatcher()
     {
