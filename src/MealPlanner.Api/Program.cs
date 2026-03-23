@@ -1,5 +1,7 @@
 using MealPlanner.Application;
 using MealPlanner.Infrastructure;
+using MealPlanner.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,4 +24,14 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
+// Apply database migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<MealPlannerDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
+
 app.Run();
+
+// Needed for WebApplicationFactory<Program> in integration tests
+public partial class Program { }

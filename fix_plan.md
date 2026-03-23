@@ -34,7 +34,7 @@
 - [x] Implement ShoppingListsController per specs/api.md
 - [x] Implement FridgeController per specs/api.md
 - [x] Add validation and error handling (ProblemDetails)
-- [ ] Write API integration tests using WebApplicationFactory
+- [x] Write API integration tests using WebApplicationFactory
 
 ### Phase 6: Blazor frontend
 - [ ] Set up Web project with HttpClient configuration pointing to API
@@ -52,7 +52,7 @@
 ### Phase 7: Deployment
 - [ ] Create Dockerfiles for API and Web projects
 - [ ] Verify full docker-compose up works end-to-end
-- [ ] Add auto-migration on API startup
+- [x] Add auto-migration on API startup
 
 ## Completed
 - [x] Implement MealPlanRepository
@@ -75,6 +75,8 @@
 - [x] Implement ShoppingListService (generate from meal plan, export, toggle-checked) with IShoppingListService interface and DI registration
 - [x] Implement FridgeService (CRUD + recipe suggestions) with IFridgeService interface, DI registration, and 9 unit tests
 - [x] Write application layer unit tests (48 tests across 4 services: RecipeService, MealPlanService, ShoppingListService, FridgeService)
+- [x] Write API integration tests using WebApplicationFactory (35 tests across 4 controllers using Testcontainers/PostgreSQL)
+- [x] Add auto-migration on API startup (MealPlannerDbContext.Database.MigrateAsync() called in Program.cs)
 
 ## Known issues
 - DELETE /api/fridge (clear all) not implemented — IFridgeService has no ClearAllAsync method
