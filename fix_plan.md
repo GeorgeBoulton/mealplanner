@@ -24,7 +24,7 @@
 - [x] Create DTOs for all entities (request + response DTOs)
 - [x] Implement RecipeService (CRUD + import)
 - [x] Implement MealPlanService (CRUD + entry management)
-- [ ] Implement ShoppingListService (generate from meal plan, export)
+- [x] Implement ShoppingListService (generate from meal plan, export)
 - [ ] Implement FridgeService (CRUD + recipe suggestions)
 - [ ] Write application layer unit tests
 
@@ -72,6 +72,7 @@
 - [x] Define repository interfaces in Domain (IRecipeRepository, IMealPlanRepository, etc)
 - [x] Write infrastructure integration tests for repositories (41 tests across 4 repositories using Testcontainers/PostgreSQL)
 - [x] Implement RecipeService (CRUD + import) with IRecipeService interface, DI registration, and 10 unit tests
+- [x] Implement ShoppingListService (generate from meal plan, export, toggle-checked) with IShoppingListService interface and DI registration
 
 ## Known issues
 (none yet)
