@@ -29,11 +29,11 @@
 - [x] Write application layer unit tests
 
 ### Phase 5: API layer
-- [ ] Implement RecipesController per specs/api.md
-- [ ] Implement MealPlansController per specs/api.md
-- [ ] Implement ShoppingListsController per specs/api.md
-- [ ] Implement FridgeController per specs/api.md
-- [ ] Add validation and error handling (ProblemDetails)
+- [x] Implement RecipesController per specs/api.md
+- [x] Implement MealPlansController per specs/api.md
+- [x] Implement ShoppingListsController per specs/api.md
+- [x] Implement FridgeController per specs/api.md
+- [x] Add validation and error handling (ProblemDetails)
 - [ ] Write API integration tests using WebApplicationFactory
 
 ### Phase 6: Blazor frontend
@@ -77,4 +77,5 @@
 - [x] Write application layer unit tests (48 tests across 4 services: RecipeService, MealPlanService, ShoppingListService, FridgeService)
 
 ## Known issues
-(none yet)
+- DELETE /api/fridge (clear all) not implemented — IFridgeService has no ClearAllAsync method
+- tag, page, pageSize query params on GET /api/recipes accepted but not forwarded to service (service interface doesn't support them)
