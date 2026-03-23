@@ -24,4 +24,11 @@ public class FridgeItem
             AddedAt = DateTime.UtcNow
         };
     }
+
+    public void Update(string name, decimal? quantity, string? unit)
+    {
+        Name = name;
+        Quantity = quantity;
+        Unit = unit;
+    }
 }

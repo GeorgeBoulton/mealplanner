@@ -12,7 +12,9 @@ public static class DependencyInjection
         services.AddScoped<IRecipeService, RecipeService>();
         services.AddScoped<IMealPlanService, MealPlanService>();
         services.AddScoped<IShoppingListService, ShoppingListService>();
+        services.AddScoped<IFridgeService, FridgeService>();
         services.AddScoped<IngredientAggregator>();
+        services.AddScoped<RecipeMatcher>();
         return services;
     }
 }
