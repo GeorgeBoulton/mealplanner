@@ -37,7 +37,7 @@
 - [x] Write API integration tests using WebApplicationFactory
 
 ### Phase 6: Blazor frontend
-- [ ] Set up Web project with HttpClient configuration pointing to API
+- [x] Set up Web project with HttpClient configuration pointing to API
 - [ ] Create typed API client services (RecipeApiClient, MealPlanApiClient, etc)
 - [ ] Build recipe list page with search and category filter per specs/blazor-frontend.md
 - [ ] Build recipe detail page per specs/blazor-frontend.md
