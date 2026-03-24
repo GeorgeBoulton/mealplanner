@@ -38,7 +38,7 @@
 
 ### Phase 6: Blazor frontend
 - [x] Set up Web project with HttpClient configuration pointing to API
-- [ ] Create typed API client services (RecipeApiClient, MealPlanApiClient, etc)
+- [x] Create typed API client services (RecipeApiClient, MealPlanApiClient, etc)
 - [ ] Build recipe list page with search and category filter per specs/blazor-frontend.md
 - [ ] Build recipe detail page per specs/blazor-frontend.md
 - [ ] Build add/edit recipe page with dynamic ingredient rows per specs/blazor-frontend.md

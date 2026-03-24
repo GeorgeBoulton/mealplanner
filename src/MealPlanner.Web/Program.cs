@@ -11,6 +11,11 @@ builder.Services.AddHttpClient("MealPlannerApi", client =>
     client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!);
 });
 
+builder.Services.AddScoped<MealPlanner.Web.Services.RecipeApiClient>();
+builder.Services.AddScoped<MealPlanner.Web.Services.MealPlanApiClient>();
+builder.Services.AddScoped<MealPlanner.Web.Services.ShoppingListApiClient>();
+builder.Services.AddScoped<MealPlanner.Web.Services.FridgeApiClient>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

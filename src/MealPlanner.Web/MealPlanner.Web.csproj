@@ -6,4 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+
+  <ItemGroup>
+    <ProjectReference Include="..\MealPlanner.Application\MealPlanner.Application.csproj" />
+  </ItemGroup>
+
 </Project>
