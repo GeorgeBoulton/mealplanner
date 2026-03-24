@@ -39,14 +39,14 @@
 ### Phase 6: Blazor frontend
 - [x] Set up Web project with HttpClient configuration pointing to API
 - [x] Create typed API client services (RecipeApiClient, MealPlanApiClient, etc)
-- [ ] Build recipe list page with search and category filter per specs/blazor-frontend.md
+- [x] Build recipe list page with search and category filter per specs/blazor-frontend.md
 - [ ] Build recipe detail page per specs/blazor-frontend.md
 - [ ] Build add/edit recipe page with dynamic ingredient rows per specs/blazor-frontend.md
 - [ ] Build recipe import (URL scrape) flow per specs/blazor-frontend.md
 - [ ] Build meal planner week view per specs/blazor-frontend.md
 - [ ] Build shopping list page with tick-off and export per specs/blazor-frontend.md
 - [ ] Build "What can I make?" suggestions page per specs/blazor-frontend.md
-- [ ] Build navigation layout (sidebar/top nav) per specs/blazor-frontend.md
+- [x] Build navigation layout (sidebar/top nav) per specs/blazor-frontend.md
 - [ ] Responsive polish — verify all pages work on mobile
 
 ### Phase 7: Deployment
