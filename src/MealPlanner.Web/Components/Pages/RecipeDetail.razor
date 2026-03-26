@@ -1,0 +1,382 @@
+@page "/recipes/{Id:guid}"
+@rendermode InteractiveServer
+@inject RecipeApiClient RecipeApi
+@inject MealPlanApiClient MealPlanApi
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(recipe?.Name ?? "Recipe")</PageTitle>
+
+<div class="container py-4" style="max-width:860px;">
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <strong>Error:</strong> @errorMessage
+        </div>
+        <a href="/recipes" class="btn btn-outline-secondary">Back to Recipes</a>
+    }
+    else if (recipe == null)
+    {
+        <div class="text-center py-5">
+            <h2 class="text-muted">Recipe not found</h2>
+            <p class="text-muted">The recipe you are looking for does not exist or has been deleted.</p>
+            <a href="/recipes" class="btn btn-primary">Back to Recipes</a>
+        </div>
+    }
+    else
+    {
+        <!-- Header row: title + action buttons -->
+        <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+            <div>
+                <h1 class="h2 mb-1">@recipe.Name</h1>
+                <span class="badge @GetCategoryBadgeClass(recipe.Category) fs-6">@recipe.Category</span>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="/recipes/@Id/edit" class="btn btn-outline-primary">Edit</a>
+                @if (confirmDelete)
+                {
+                    <span class="d-inline-flex align-items-center gap-2">
+                        <span class="text-danger small fw-semibold">Delete this recipe?</span>
+                        <button class="btn btn-danger btn-sm" @onclick="ConfirmDelete" disabled="@isDeleting">
+                            @if (isDeleting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                            }
+                            Yes, delete
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" @onclick="CancelDelete" disabled="@isDeleting">Cancel</button>
+                    </span>
+                }
+                else
+                {
+                    <button class="btn btn-outline-danger" @onclick="RequestDelete">Delete</button>
+                }
+                <button class="btn btn-success" @onclick="ToggleAddToMealPlan">
+                    @(showMealPlanPicker ? "Cancel" : "Add to Meal Plan")
+                </button>
+            </div>
+        </div>
+
+        <!-- Add to Meal Plan inline picker -->
+        @if (showMealPlanPicker)
+        {
+            <div class="card mb-4 border-success">
+                <div class="card-header bg-success text-white fw-semibold">Add to Meal Plan</div>
+                <div class="card-body">
+                    @if (mealPlanErrorMessage != null)
+                    {
+                        <div class="alert alert-danger py-2">@mealPlanErrorMessage</div>
+                    }
+                    @if (mealPlanSuccess)
+                    {
+                        <div class="alert alert-success py-2">Recipe added to meal plan!</div>
+                    }
+                    <div class="row g-3 align-items-end">
+                        <div class="col-sm-4">
+                            <label class="form-label fw-semibold" for="mealPlanDate">Date</label>
+                            <input id="mealPlanDate"
+                                   type="date"
+                                   class="form-control"
+                                   @bind="mealPlanDate"
+                                   min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label fw-semibold" for="mealType">Meal Type</label>
+                            <select id="mealType" class="form-select" @bind="mealPlanMealType">
+                                @foreach (var mt in AllMealTypes)
+                                {
+                                    <option value="@mt">@mt</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-2">
+                            <label class="form-label fw-semibold" for="mealServings">Servings</label>
+                            <input id="mealServings"
+                                   type="number"
+                                   class="form-control"
+                                   min="1"
+                                   @bind="mealPlanServings" />
+                        </div>
+                        <div class="col-sm-2">
+                            <button class="btn btn-success w-100"
+                                    @onclick="AddToMealPlan"
+                                    disabled="@isAddingToMealPlan">
+                                @if (isAddingToMealPlan)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                }
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Main content card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+
+                <!-- Description -->
+                @if (!string.IsNullOrWhiteSpace(recipe.Description))
+                {
+                    <p class="lead mb-3">@recipe.Description</p>
+                }
+
+                <!-- Meta row -->
+                <div class="d-flex flex-wrap gap-4 text-muted mb-3">
+                    @if (recipe.PrepTimeMinutes.HasValue)
+                    {
+                        <div>
+                            <span class="fw-semibold text-body">Prep time</span><br />
+                            @FormatMinutes(recipe.PrepTimeMinutes.Value)
+                        </div>
+                    }
+                    @if (recipe.CookTimeMinutes.HasValue)
+                    {
+                        <div>
+                            <span class="fw-semibold text-body">Cook time</span><br />
+                            @FormatMinutes(recipe.CookTimeMinutes.Value)
+                        </div>
+                    }
+                    <div>
+                        <span class="fw-semibold text-body">Servings</span><br />
+                        @recipe.Servings serving@(recipe.Servings != 1 ? "s" : "")
+                    </div>
+                </div>
+
+                <!-- Tags -->
+                @if (recipe.Tags.Count > 0)
+                {
+                    <div class="mb-3 d-flex flex-wrap gap-1">
+                        @foreach (var tag in recipe.Tags)
+                        {
+                            <span class="badge bg-light text-dark border">@tag</span>
+                        }
+                    </div>
+                }
+
+                <!-- Source URL -->
+                @if (!string.IsNullOrWhiteSpace(recipe.SourceUrl))
+                {
+                    <p class="mb-3">
+                        <span class="fw-semibold">Source:</span>
+                        <a href="@recipe.SourceUrl" target="_blank" rel="noopener noreferrer">@recipe.SourceUrl</a>
+                    </p>
+                }
+
+                <hr />
+
+                <!-- Ingredients -->
+                <h2 class="h5 mb-3">Ingredients</h2>
+                @if (recipe.Ingredients.Count == 0)
+                {
+                    <p class="text-muted">No ingredients listed.</p>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush mb-3">
+                        @foreach (var ing in recipe.Ingredients)
+                        {
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                <span>
+                                    @ing.Name
+                                    @if (ing.Optional)
+                                    {
+                                        <span class="badge bg-light text-muted border ms-1 small">optional</span>
+                                    }
+                                </span>
+                                <span class="text-muted text-nowrap ms-3">
+                                    @FormatQuantity(ing.Quantity) @ing.Unit
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                }
+
+                <hr />
+
+                <!-- Instructions -->
+                <h2 class="h5 mb-3">Instructions</h2>
+                @if (string.IsNullOrWhiteSpace(recipe.Instructions))
+                {
+                    <p class="text-muted">No instructions provided.</p>
+                }
+                else
+                {
+                    <div class="instructions-text" style="white-space:pre-wrap; line-height:1.7;">@recipe.Instructions</div>
+                }
+
+            </div>
+        </div>
+
+        <!-- Back link -->
+        <a href="/recipes" class="btn btn-outline-secondary">&laquo; Back to Recipes</a>
+    }
+
+</div>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private RecipeResponse? recipe;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    // Delete flow
+    private bool confirmDelete = false;
+    private bool isDeleting = false;
+
+    // Add to meal plan
+    private bool showMealPlanPicker = false;
+    private DateTime mealPlanDate = DateTime.Today;
+    private MealType mealPlanMealType = MealType.Dinner;
+    private int mealPlanServings = 2;
+    private bool isAddingToMealPlan = false;
+    private string? mealPlanErrorMessage;
+    private bool mealPlanSuccess = false;
+
+    private static readonly MealType[] AllMealTypes = Enum.GetValues<MealType>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        try
+        {
+            recipe = await RecipeApi.GetRecipeAsync(Id);
+            if (recipe != null)
+            {
+                mealPlanServings = recipe.Servings;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not load recipe: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // --- Delete ---
+
+    private void RequestDelete()
+    {
+        confirmDelete = true;
+    }
+
+    private void CancelDelete()
+    {
+        confirmDelete = false;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        isDeleting = true;
+        try
+        {
+            await RecipeApi.DeleteRecipeAsync(Id);
+            NavigationManager.NavigateTo("/recipes");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not delete recipe: {ex.Message}";
+            confirmDelete = false;
+        }
+        finally
+        {
+            isDeleting = false;
+        }
+    }
+
+    // --- Add to Meal Plan ---
+
+    private void ToggleAddToMealPlan()
+    {
+        showMealPlanPicker = !showMealPlanPicker;
+        mealPlanErrorMessage = null;
+        mealPlanSuccess = false;
+    }
+
+    private async Task AddToMealPlan()
+    {
+        mealPlanErrorMessage = null;
+        mealPlanSuccess = false;
+
+        if (mealPlanServings < 1)
+        {
+            mealPlanErrorMessage = "Servings must be at least 1.";
+            return;
+        }
+
+        isAddingToMealPlan = true;
+        try
+        {
+            var date = DateOnly.FromDateTime(mealPlanDate);
+
+            // Find or create the meal plan whose week contains the selected date.
+            // Week starts on Monday.
+            var weekStart = date.AddDays(-(((int)date.DayOfWeek + 6) % 7));
+
+            var plans = await MealPlanApi.GetMealPlansAsync();
+            var plan = plans.FirstOrDefault(p => p.WeekStartDate == weekStart);
+            if (plan == null)
+            {
+                plan = await MealPlanApi.CreateMealPlanAsync(new CreateMealPlanRequest(weekStart));
+            }
+
+            var entry = new MealPlanEntryRequest(date, mealPlanMealType, Id, mealPlanServings);
+            await MealPlanApi.AddEntryAsync(plan.Id, entry);
+
+            mealPlanSuccess = true;
+            showMealPlanPicker = false;
+        }
+        catch (Exception ex)
+        {
+            mealPlanErrorMessage = $"Could not add to meal plan: {ex.Message}";
+        }
+        finally
+        {
+            isAddingToMealPlan = false;
+        }
+    }
+
+    // --- Helpers ---
+
+    private static string FormatMinutes(int minutes)
+    {
+        if (minutes <= 0) return "—";
+        if (minutes < 60) return $"{minutes} min";
+        var h = minutes / 60;
+        var m = minutes % 60;
+        return m == 0 ? $"{h}h" : $"{h}h {m}m";
+    }
+
+    private static string FormatQuantity(decimal qty)
+    {
+        // Trim trailing zeros: 1.50 → "1.5", 2.00 → "2"
+        return qty.ToString("G29");
+    }
+
+    private static string GetCategoryBadgeClass(RecipeCategory category) => category switch
+    {
+        RecipeCategory.Breakfast => "bg-warning text-dark",
+        RecipeCategory.Lunch     => "bg-info text-dark",
+        RecipeCategory.Dinner    => "bg-primary",
+        RecipeCategory.Snack     => "bg-success",
+        RecipeCategory.Dessert   => "bg-danger",
+        RecipeCategory.Side      => "bg-secondary",
+        RecipeCategory.Drink     => "bg-dark",
+        _                        => "bg-secondary"
+    };
+}
