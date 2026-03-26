@@ -1,0 +1,451 @@
+@page "/mealplan"
+@rendermode InteractiveServer
+@inject MealPlanApiClient MealPlanApi
+@inject ShoppingListApiClient ShoppingListApi
+@inject RecipeApiClient RecipeApi
+@inject NavigationManager NavigationManager
+
+<PageTitle>Meal Plan</PageTitle>
+
+<div class="container-fluid py-3">
+
+    <!-- Header row -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h1 class="h3 mb-0">Meal Plan</h1>
+        <button class="btn btn-success"
+                @onclick="GenerateShoppingList"
+                disabled="@(isGenerating || currentPlan == null)">
+            @if (isGenerating)
+            {
+                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+            }
+            Generate Shopping List
+        </button>
+    </div>
+
+    <!-- Shopping list success message -->
+    @if (shoppingListGenerated && generatedShoppingListId.HasValue)
+    {
+        <div class="alert alert-success alert-dismissible d-flex align-items-center gap-2" role="alert">
+            <span>Shopping list generated!</span>
+            <a href="/shopping-list/@generatedShoppingListId.Value" class="alert-link fw-semibold">View Shopping List</a>
+            <button type="button" class="btn-close ms-auto" @onclick="DismissShoppingListAlert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Error message -->
+    @if (errorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <strong>Error:</strong> @errorMessage
+        </div>
+    }
+
+    <!-- Week navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <button class="btn btn-outline-secondary" @onclick="PreviousWeek">
+            &laquo; Prev Week
+        </button>
+        <span class="fw-semibold fs-5">
+            @WeekRangeLabel
+        </span>
+        <button class="btn btn-outline-secondary" @onclick="NextWeek">
+            Next Week &raquo;
+        </button>
+    </div>
+
+    <!-- Loading state -->
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Week table -->
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle text-center" style="min-width:700px;">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:100px;">Meal</th>
+                        @foreach (var day in WeekDays)
+                        {
+                            var isToday = day == DateOnly.FromDateTime(DateTime.Today);
+                            <th class="@(isToday ? "table-primary" : "")">
+                                <div>@day.ToString("ddd")</div>
+                                <div class="small text-muted fw-normal">@day.ToString("d MMM")</div>
+                            </th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var mealType in AllMealTypes)
+                    {
+                        var mt = mealType;
+                        <tr>
+                            <td class="fw-semibold text-nowrap">@mt</td>
+                            @foreach (var day in WeekDays)
+                            {
+                                var d = day;
+                                var entry = GetEntry(d, mt);
+                                <td style="min-width:120px; vertical-align:middle;">
+                                    @if (entry != null)
+                                    {
+                                        var recipeName = GetRecipeName(entry.RecipeId);
+                                        <div class="d-flex flex-column align-items-center gap-1">
+                                            <span class="small fw-semibold text-wrap" style="max-width:110px;">
+                                                @recipeName <span class="text-muted fw-normal">&times; @entry.Servings</span>
+                                            </span>
+                                            <div class="d-flex gap-1">
+                                                <button class="btn btn-outline-primary btn-sm py-0 px-1"
+                                                        style="font-size:0.7rem;"
+                                                        @onclick="() => OpenEditModal(d, mt, entry)"
+                                                        title="Edit">
+                                                    Edit
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm py-0 px-1"
+                                                        style="font-size:0.7rem;"
+                                                        @onclick="() => RemoveEntry(entry)"
+                                                        title="Remove">
+                                                    &times;
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-outline-secondary btn-sm"
+                                                style="font-size:1.1rem; line-height:1; padding:2px 8px;"
+                                                @onclick="() => OpenAddModal(d, mt)"
+                                                title="Add meal">
+                                            +
+                                        </button>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <!-- Add / Edit modal (inline conditional) -->
+    @if (showModal)
+    {
+        <div class="modal-backdrop fade show" style="z-index:1040;"></div>
+        <div class="modal d-block" tabindex="-1" style="z-index:1050;" role="dialog">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            @(isEditMode ? "Edit Meal" : "Add Meal")
+                            &mdash; @modalDate.ToString("ddd d MMM"), @modalMealType
+                        </h5>
+                        <button type="button" class="btn-close" @onclick="CloseModal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        @if (modalErrorMessage != null)
+                        {
+                            <div class="alert alert-danger py-2">@modalErrorMessage</div>
+                        }
+
+                        <!-- Recipe selector -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="recipeSearch">Recipe</label>
+                            <input id="recipeSearch"
+                                   type="text"
+                                   class="form-control mb-1"
+                                   placeholder="Filter recipes..."
+                                   @bind="recipeSearchTerm"
+                                   @bind:event="oninput" />
+                            <select class="form-select" size="5" @bind="selectedRecipeId">
+                                @foreach (var r in FilteredRecipes)
+                                {
+                                    <option value="@r.Id">@r.Name</option>
+                                }
+                            </select>
+                            @if (FilteredRecipes.Count == 0)
+                            {
+                                <div class="text-muted small mt-1">No recipes match your search.</div>
+                            }
+                        </div>
+
+                        <!-- Servings input -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="modalServings">Servings</label>
+                            <input id="modalServings"
+                                   type="number"
+                                   class="form-control"
+                                   min="1"
+                                   @bind="modalServings" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                        <button class="btn btn-primary"
+                                @onclick="SaveModal"
+                                disabled="@isSaving">
+                            @if (isSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                            }
+                            Save
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>
+
+@code {
+    // --- State ---
+    private DateOnly weekStart;
+    private MealPlanResponse? currentPlan;
+    private List<RecipeResponse> allRecipes = [];
+
+    private bool isLoading = true;
+    private bool isGenerating = false;
+    private bool isSaving = false;
+    private string? errorMessage;
+
+    // Shopping list
+    private bool shoppingListGenerated = false;
+    private Guid? generatedShoppingListId;
+
+    // Modal state
+    private bool showModal = false;
+    private bool isEditMode = false;
+    private DateOnly modalDate;
+    private MealType modalMealType;
+    private MealPlanEntryResponse? editingEntry;
+    private Guid? selectedRecipeId;
+    private int modalServings = 2;
+    private string? modalErrorMessage;
+    private string recipeSearchTerm = string.Empty;
+
+    private static readonly MealType[] AllMealTypes = Enum.GetValues<MealType>();
+
+    // --- Computed ---
+
+    private string WeekRangeLabel
+    {
+        get
+        {
+            var end = weekStart.AddDays(6);
+            return $"{weekStart:d MMM} – {end:d MMM yyyy}";
+        }
+    }
+
+    private DateOnly[] WeekDays => Enumerable.Range(0, 7).Select(i => weekStart.AddDays(i)).ToArray();
+
+    private List<RecipeResponse> FilteredRecipes
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(recipeSearchTerm))
+                return allRecipes;
+            var term = recipeSearchTerm.Trim();
+            return allRecipes
+                .Where(r => r.Name.Contains(term, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+    }
+
+    private MealPlanEntryResponse? GetEntry(DateOnly date, MealType mealType)
+        => currentPlan?.Entries.FirstOrDefault(e => e.Date == date && e.MealType == mealType);
+
+    private string GetRecipeName(Guid recipeId)
+    {
+        var recipe = allRecipes.FirstOrDefault(r => r.Id == recipeId);
+        return recipe?.Name ?? "Unknown Recipe";
+    }
+
+    // --- Lifecycle ---
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Default to the current week (starting Monday)
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        weekStart = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
+        await LoadPageDataAsync();
+    }
+
+    private async Task LoadPageDataAsync()
+    {
+        isLoading = true;
+        errorMessage = null;
+        try
+        {
+            // Load recipes and meal plan in parallel
+            var recipesTask = RecipeApi.GetRecipesAsync(page: 1, pageSize: 500);
+            var plansTask = MealPlanApi.GetMealPlansAsync();
+
+            await Task.WhenAll(recipesTask, plansTask);
+
+            allRecipes = recipesTask.Result;
+            var plans = plansTask.Result;
+            currentPlan = plans.FirstOrDefault(p => p.WeekStartDate == weekStart);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not load data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // --- Week navigation ---
+
+    private async Task PreviousWeek()
+    {
+        weekStart = weekStart.AddDays(-7);
+        shoppingListGenerated = false;
+        await LoadPageDataAsync();
+    }
+
+    private async Task NextWeek()
+    {
+        weekStart = weekStart.AddDays(7);
+        shoppingListGenerated = false;
+        await LoadPageDataAsync();
+    }
+
+    // --- Modal open/close ---
+
+    private void OpenAddModal(DateOnly date, MealType mealType)
+    {
+        isEditMode = false;
+        modalDate = date;
+        modalMealType = mealType;
+        editingEntry = null;
+        selectedRecipeId = allRecipes.FirstOrDefault()?.Id;
+        modalServings = 2;
+        recipeSearchTerm = string.Empty;
+        modalErrorMessage = null;
+        showModal = true;
+    }
+
+    private void OpenEditModal(DateOnly date, MealType mealType, MealPlanEntryResponse entry)
+    {
+        isEditMode = true;
+        modalDate = date;
+        modalMealType = mealType;
+        editingEntry = entry;
+        selectedRecipeId = entry.RecipeId;
+        modalServings = entry.Servings;
+        recipeSearchTerm = string.Empty;
+        modalErrorMessage = null;
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        modalErrorMessage = null;
+    }
+
+    // --- Save modal (add or edit) ---
+
+    private async Task SaveModal()
+    {
+        modalErrorMessage = null;
+
+        if (selectedRecipeId == null)
+        {
+            modalErrorMessage = "Please select a recipe.";
+            return;
+        }
+        if (modalServings < 1)
+        {
+            modalErrorMessage = "Servings must be at least 1.";
+            return;
+        }
+
+        isSaving = true;
+        try
+        {
+            // Ensure a meal plan exists for this week
+            if (currentPlan == null)
+            {
+                currentPlan = await MealPlanApi.CreateMealPlanAsync(new CreateMealPlanRequest(weekStart));
+            }
+
+            var request = new MealPlanEntryRequest(modalDate, modalMealType, selectedRecipeId.Value, modalServings);
+
+            if (isEditMode && editingEntry != null)
+            {
+                currentPlan = await MealPlanApi.UpdateEntryAsync(currentPlan.Id, editingEntry.Id, request);
+            }
+            else
+            {
+                currentPlan = await MealPlanApi.AddEntryAsync(currentPlan.Id, request);
+            }
+
+            showModal = false;
+        }
+        catch (Exception ex)
+        {
+            modalErrorMessage = $"Could not save: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    // --- Remove entry ---
+
+    private async Task RemoveEntry(MealPlanEntryResponse entry)
+    {
+        if (currentPlan == null) return;
+        errorMessage = null;
+        try
+        {
+            currentPlan = await MealPlanApi.DeleteEntryAsync(currentPlan.Id, entry.Id);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not remove entry: {ex.Message}";
+        }
+    }
+
+    // --- Generate shopping list ---
+
+    private async Task GenerateShoppingList()
+    {
+        if (currentPlan == null) return;
+
+        isGenerating = true;
+        errorMessage = null;
+        shoppingListGenerated = false;
+
+        try
+        {
+            var shoppingList = await ShoppingListApi.GenerateFromMealPlanAsync(currentPlan.Id);
+            generatedShoppingListId = shoppingList.Id;
+            shoppingListGenerated = true;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not generate shopping list: {ex.Message}";
+        }
+        finally
+        {
+            isGenerating = false;
+        }
+    }
+
+    private void DismissShoppingListAlert()
+    {
+        shoppingListGenerated = false;
+        generatedShoppingListId = null;
+    }
+}
