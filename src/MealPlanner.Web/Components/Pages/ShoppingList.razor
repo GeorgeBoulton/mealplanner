@@ -1,0 +1,349 @@
+@page "/shopping-list/{Id:guid?}"
+@rendermode InteractiveServer
+@inject ShoppingListApiClient ShoppingListApi
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<PageTitle>Shopping List</PageTitle>
+
+<div class="container-fluid py-3">
+
+    <!-- Header row -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h1 class="h3 mb-0">Shopping List</h1>
+        @if (shoppingList != null)
+        {
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-outline-secondary" @onclick="ClearCheckedItems">
+                    Clear Checked
+                </button>
+                <button class="btn btn-outline-primary" @onclick="ExportList" disabled="@isExporting">
+                    @if (isExporting)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    }
+                    Export
+                </button>
+            </div>
+        }
+    </div>
+
+    <!-- Error message -->
+    @if (errorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <strong>Error:</strong> @errorMessage
+        </div>
+    }
+
+    <!-- Loading state -->
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (Id == null)
+    {
+        <!-- Empty state: no ID provided -->
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="text-muted mb-3" viewBox="0 0 16 16">
+                    <path d="M3 2a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2zm1 0v12h8V2H4z"/>
+                    <path d="M6 5.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5z"/>
+                </svg>
+            </div>
+            <h4 class="text-muted">No Shopping List Selected</h4>
+            <p class="text-muted">Generate a shopping list from the <a href="/mealplan">Meal Plan</a> page to get started.</p>
+        </div>
+    }
+    else if (shoppingList == null)
+    {
+        <!-- Shopping list not found -->
+        <div class="alert alert-warning" role="alert">
+            Shopping list not found. It may have been deleted.
+            <a href="/mealplan" class="alert-link">Go to Meal Plan</a> to generate a new one.
+        </div>
+    }
+    else
+    {
+        <!-- Generated at info -->
+        <p class="text-muted small mb-3">
+            Generated on @shoppingList.GeneratedAt.ToLocalTime().ToString("ddd d MMM yyyy, h:mm tt")
+        </p>
+
+        <!-- Items grouped by category -->
+        @if (!VisibleGroups.Any())
+        {
+            <div class="alert alert-info" role="alert">
+                All items have been checked off.
+                <button class="btn btn-link p-0 align-baseline" @onclick="RestoreHiddenItems">Show all items</button>
+            </div>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var group in VisibleGroups)
+                {
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="card h-100">
+                            <div class="card-header fw-semibold">
+                                @GetCategoryIcon(group.Key) @group.Key.ToString()
+                                <span class="badge bg-secondary ms-2">@group.Count()</span>
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                @foreach (var item in group.OrderBy(i => i.IngredientName))
+                                {
+                                    var capturedItem = item;
+                                    <li class="list-group-item @(capturedItem.IsChecked ? "text-muted" : "")">
+                                        <div class="d-flex align-items-start gap-2">
+                                            <div class="pt-1">
+                                                <input type="checkbox"
+                                                       class="form-check-input"
+                                                       checked="@capturedItem.IsChecked"
+                                                       @onchange="() => ToggleItem(capturedItem)"
+                                                       id="item-@capturedItem.Id" />
+                                            </div>
+                                            <label class="form-check-label flex-grow-1 @(capturedItem.IsChecked ? "text-decoration-line-through" : "")"
+                                                   for="item-@capturedItem.Id"
+                                                   style="cursor:pointer;">
+                                                <div class="fw-semibold">@capturedItem.IngredientName</div>
+                                                <div class="small text-muted">
+                                                    @FormatQuantity(capturedItem.TotalQuantity) @capturedItem.Unit
+                                                </div>
+                                                @if (capturedItem.FromRecipes.Any())
+                                                {
+                                                    <div class="small text-muted fst-italic">
+                                                        From: @string.Join(", ", capturedItem.FromRecipes)
+                                                    </div>
+                                                }
+                                            </label>
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+
+</div>
+
+<!-- Export Modal -->
+@if (showExportModal)
+{
+    <div class="modal-backdrop fade show" style="z-index:1040;"></div>
+    <div class="modal d-block" tabindex="-1" style="z-index:1050;" role="dialog">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Shopping List Export</h5>
+                    <button type="button" class="btn-close" @onclick="CloseExportModal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @if (exportErrorMessage != null)
+                    {
+                        <div class="alert alert-danger py-2">@exportErrorMessage</div>
+                    }
+                    <pre class="border rounded p-3 bg-light" style="white-space:pre-wrap; max-height:60vh; overflow-y:auto;">@exportText</pre>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary" @onclick="CopyToClipboard" disabled="@isCopying">
+                        @if (isCopying)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                        }
+                        @(copySuccess ? "Copied!" : "Copy to Clipboard")
+                    </button>
+                    <button class="btn btn-secondary" @onclick="CloseExportModal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+
+    // --- State ---
+    private ShoppingListResponse? shoppingList;
+    private bool isLoading = true;
+    private bool isExporting = false;
+    private string? errorMessage;
+
+    // Locally hidden item IDs (cleared checked items)
+    private HashSet<Guid> locallyHidden = [];
+
+    // Export modal
+    private bool showExportModal = false;
+    private string? exportText;
+    private string? exportErrorMessage;
+    private bool isCopying = false;
+    private bool copySuccess = false;
+
+    // --- Lifecycle ---
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id.HasValue)
+        {
+            isLoading = true;
+            errorMessage = null;
+            locallyHidden.Clear();
+            try
+            {
+                shoppingList = await ShoppingListApi.GetShoppingListAsync(Id.Value);
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Could not load shopping list: {ex.Message}";
+            }
+            finally
+            {
+                isLoading = false;
+            }
+        }
+        else
+        {
+            isLoading = false;
+            shoppingList = null;
+        }
+    }
+
+    // --- Computed ---
+
+    private IEnumerable<IGrouping<ShoppingCategory, ShoppingListItemResponse>> VisibleGroups =>
+        shoppingList!.Items
+            .Where(i => !locallyHidden.Contains(i.Id))
+            .GroupBy(i => i.Category)
+            .OrderBy(g => (int)g.Key);
+
+    // --- Toggle item checked state ---
+
+    private async Task ToggleItem(ShoppingListItemResponse item)
+    {
+        if (shoppingList == null) return;
+
+        var newChecked = !item.IsChecked;
+        try
+        {
+            var updated = await ShoppingListApi.UpdateItemAsync(
+                shoppingList.Id,
+                item.Id,
+                new UpdateShoppingListItemRequest(newChecked));
+
+            // Update local list item
+            var idx = shoppingList.Items.FindIndex(i => i.Id == item.Id);
+            if (idx >= 0)
+            {
+                shoppingList.Items[idx] = updated;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not update item: {ex.Message}";
+        }
+    }
+
+    // --- Clear checked items (client-side) ---
+
+    private void ClearCheckedItems()
+    {
+        if (shoppingList == null) return;
+        foreach (var item in shoppingList.Items.Where(i => i.IsChecked))
+        {
+            locallyHidden.Add(item.Id);
+        }
+    }
+
+    private void RestoreHiddenItems()
+    {
+        locallyHidden.Clear();
+    }
+
+    // --- Export ---
+
+    private async Task ExportList()
+    {
+        if (shoppingList == null) return;
+
+        isExporting = true;
+        exportErrorMessage = null;
+        exportText = null;
+
+        try
+        {
+            exportText = await ShoppingListApi.ExportShoppingListAsync(shoppingList.Id);
+            copySuccess = false;
+            showExportModal = true;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not export shopping list: {ex.Message}";
+        }
+        finally
+        {
+            isExporting = false;
+        }
+    }
+
+    private void CloseExportModal()
+    {
+        showExportModal = false;
+        exportText = null;
+        exportErrorMessage = null;
+        copySuccess = false;
+    }
+
+    private async Task CopyToClipboard()
+    {
+        if (string.IsNullOrEmpty(exportText)) return;
+
+        isCopying = true;
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", exportText);
+            copySuccess = true;
+        }
+        catch (Exception ex)
+        {
+            exportErrorMessage = $"Could not copy to clipboard: {ex.Message}";
+            copySuccess = false;
+        }
+        finally
+        {
+            isCopying = false;
+        }
+    }
+
+    // --- Helpers ---
+
+    private static string FormatQuantity(decimal quantity)
+    {
+        return quantity == Math.Floor(quantity)
+            ? ((int)quantity).ToString()
+            : quantity.ToString("G29");
+    }
+
+    private static string GetCategoryIcon(ShoppingCategory category) => category switch
+    {
+        ShoppingCategory.FruitAndVeg => "🥦",
+        ShoppingCategory.Meat => "🥩",
+        ShoppingCategory.Fish => "🐟",
+        ShoppingCategory.Dairy => "🧀",
+        ShoppingCategory.Bakery => "🍞",
+        ShoppingCategory.Tinned => "🥫",
+        ShoppingCategory.Dried => "🌾",
+        ShoppingCategory.Frozen => "❄️",
+        ShoppingCategory.Condiments => "🫙",
+        ShoppingCategory.Drinks => "🥤",
+        ShoppingCategory.Snacks => "🍫",
+        ShoppingCategory.Household => "🧹",
+        ShoppingCategory.Other => "🛒",
+        _ => ""
+    };
+}
