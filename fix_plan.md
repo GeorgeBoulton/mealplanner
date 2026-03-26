@@ -42,7 +42,7 @@
 - [x] Build recipe list page with search and category filter per specs/blazor-frontend.md
 - [x] Build recipe detail page per specs/blazor-frontend.md
 - [x] Build add/edit recipe page with dynamic ingredient rows per specs/blazor-frontend.md
-- [ ] Build recipe import (URL scrape) flow per specs/blazor-frontend.md
+- [x] Build recipe import (URL scrape) flow per specs/blazor-frontend.md
 - [ ] Build meal planner week view per specs/blazor-frontend.md
 - [ ] Build shopping list page with tick-off and export per specs/blazor-frontend.md
 - [ ] Build "What can I make?" suggestions page per specs/blazor-frontend.md
@@ -81,3 +81,4 @@
 ## Known issues
 - DELETE /api/fridge (clear all) not implemented — IFridgeService has no ClearAllAsync method
 - tag, page, pageSize query params on GET /api/recipes accepted but not forwarded to service (service interface doesn't support them)
+- Web project imports MealPlanner.Domain.Enums directly (_Imports.razor) — violates DDD layering; enums should be re-exported through Application.DTOs or duplicated as DTO enums
