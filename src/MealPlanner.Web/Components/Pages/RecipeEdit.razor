@@ -1,0 +1,526 @@
+@page "/recipes/new"
+@page "/recipes/{Id:guid}/edit"
+@rendermode InteractiveServer
+@inject RecipeApiClient RecipeApi
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(Id.HasValue ? "Edit Recipe" : "New Recipe")</PageTitle>
+
+<div class="container py-4" style="max-width:860px;">
+
+    <h1 class="h2 mb-4">@(Id.HasValue ? "Edit Recipe" : "New Recipe")</h1>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Import from URL -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-semibold">Import from URL</div>
+            <div class="card-body">
+                <div class="row g-2 align-items-start">
+                    <div class="col">
+                        <input type="url"
+                               class="form-control @(importError != null ? "is-invalid" : "")"
+                               placeholder="https://example.com/recipe"
+                               @bind="importUrl"
+                               @bind:event="oninput"
+                               disabled="@isImporting" />
+                        @if (importError != null)
+                        {
+                            <div class="invalid-feedback d-block">@importError</div>
+                        }
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-outline-primary" @onclick="ImportFromUrl" disabled="@(isImporting || string.IsNullOrWhiteSpace(importUrl))">
+                            @if (isImporting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                            }
+                            Import
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recipe Form -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+
+                <!-- Name -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="recipeName">Name <span class="text-danger">*</span></label>
+                    <input id="recipeName"
+                           type="text"
+                           class="form-control @(validationErrors.ContainsKey("Name") ? "is-invalid" : "")"
+                           @bind="name"
+                           @bind:event="oninput" />
+                    @if (validationErrors.TryGetValue("Name", out var nameErr))
+                    {
+                        <div class="invalid-feedback">@nameErr</div>
+                    }
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="recipeDescription">Description</label>
+                    <textarea id="recipeDescription"
+                              class="form-control"
+                              rows="3"
+                              @bind="description"
+                              @bind:event="oninput"></textarea>
+                </div>
+
+                <!-- Category + Servings row -->
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold" for="recipeCategory">Category</label>
+                        <select id="recipeCategory" class="form-select" @bind="category">
+                            @foreach (var cat in AllCategories)
+                            {
+                                <option value="@cat">@cat</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold" for="recipeServings">Servings <span class="text-danger">*</span></label>
+                        <input id="recipeServings"
+                               type="number"
+                               class="form-control @(validationErrors.ContainsKey("Servings") ? "is-invalid" : "")"
+                               min="1"
+                               @bind="servings"
+                               @bind:event="oninput" />
+                        @if (validationErrors.TryGetValue("Servings", out var servingsErr))
+                        {
+                            <div class="invalid-feedback">@servingsErr</div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Prep + Cook time row -->
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold" for="recipePrepTime">Prep Time (minutes)</label>
+                        <input id="recipePrepTime"
+                               type="number"
+                               class="form-control"
+                               min="0"
+                               @bind="prepTimeMinutes"
+                               @bind:event="oninput" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label fw-semibold" for="recipeCookTime">Cook Time (minutes)</label>
+                        <input id="recipeCookTime"
+                               type="number"
+                               class="form-control"
+                               min="0"
+                               @bind="cookTimeMinutes"
+                               @bind:event="oninput" />
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="recipeInstructions">Instructions <span class="text-danger">*</span></label>
+                    <textarea id="recipeInstructions"
+                              class="form-control @(validationErrors.ContainsKey("Instructions") ? "is-invalid" : "")"
+                              rows="6"
+                              @bind="instructions"
+                              @bind:event="oninput"></textarea>
+                    @if (validationErrors.TryGetValue("Instructions", out var instrErr))
+                    {
+                        <div class="invalid-feedback">@instrErr</div>
+                    }
+                </div>
+
+                <!-- Tags -->
+                <div class="mb-0">
+                    <label class="form-label fw-semibold" for="recipeTags">Tags</label>
+                    <input id="recipeTags"
+                           type="text"
+                           class="form-control"
+                           placeholder="e.g. quick, vegetarian, gluten-free"
+                           @bind="tagsRaw"
+                           @bind:event="oninput" />
+                    <div class="form-text">Comma-separated list of tags.</div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Ingredients -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Ingredients <span class="text-danger">*</span></span>
+                <button class="btn btn-sm btn-outline-primary" type="button" @onclick="AddIngredient">+ Add Ingredient</button>
+            </div>
+            <div class="card-body p-0">
+                @if (validationErrors.TryGetValue("Ingredients", out var ingListErr))
+                {
+                    <div class="text-danger small px-3 pt-2">@ingListErr</div>
+                }
+                @if (ingredients.Count == 0)
+                {
+                    <p class="text-muted text-center py-3 mb-0">No ingredients yet. Click &ldquo;Add Ingredient&rdquo; to begin.</p>
+                }
+                else
+                {
+                    <!-- Header row (visible on md+) -->
+                    <div class="d-none d-md-flex px-3 pt-2 pb-1 text-muted small fw-semibold gap-2">
+                        <div style="flex:2;">Name</div>
+                        <div style="flex:1;">Qty</div>
+                        <div style="flex:1;">Unit</div>
+                        <div style="flex:2;">Shopping Category</div>
+                        <div style="width:70px;" class="text-center">Optional</div>
+                        <div style="width:40px;"></div>
+                    </div>
+                    @foreach (var (ing, idx) in ingredients.Select((x, i) => (x, i)))
+                    {
+                        var localIng = ing;
+                        var localIdx = idx;
+                        <div class="border-top px-3 py-2">
+                            <div class="d-flex flex-wrap flex-md-nowrap gap-2 align-items-start">
+                                <!-- Name -->
+                                <div style="flex:2; min-width:120px;">
+                                    <input type="text"
+                                           class="form-control form-control-sm @(validationErrors.ContainsKey($"Ingredient[{localIdx}].Name") ? "is-invalid" : "")"
+                                           placeholder="Name"
+                                           @bind="localIng.Name"
+                                           @bind:event="oninput" />
+                                    @if (validationErrors.TryGetValue($"Ingredient[{localIdx}].Name", out var ingNameErr))
+                                    {
+                                        <div class="invalid-feedback">@ingNameErr</div>
+                                    }
+                                </div>
+                                <!-- Quantity -->
+                                <div style="flex:1; min-width:70px;">
+                                    <input type="number"
+                                           class="form-control form-control-sm @(validationErrors.ContainsKey($"Ingredient[{localIdx}].Quantity") ? "is-invalid" : "")"
+                                           placeholder="Qty"
+                                           min="0"
+                                           step="any"
+                                           @bind="localIng.Quantity"
+                                           @bind:event="oninput" />
+                                    @if (validationErrors.TryGetValue($"Ingredient[{localIdx}].Quantity", out var ingQtyErr))
+                                    {
+                                        <div class="invalid-feedback">@ingQtyErr</div>
+                                    }
+                                </div>
+                                <!-- Unit -->
+                                <div style="flex:1; min-width:70px;">
+                                    <input type="text"
+                                           class="form-control form-control-sm"
+                                           placeholder="Unit"
+                                           @bind="localIng.Unit"
+                                           @bind:event="oninput" />
+                                </div>
+                                <!-- Shopping Category -->
+                                <div style="flex:2; min-width:130px;">
+                                    <select class="form-select form-select-sm" @bind="localIng.ShoppingCategory">
+                                        @foreach (var sc in AllShoppingCategories)
+                                        {
+                                            <option value="@sc">@sc</option>
+                                        }
+                                    </select>
+                                </div>
+                                <!-- Optional -->
+                                <div style="width:70px;" class="d-flex justify-content-center align-items-center pt-1">
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="@($"ing-optional-{localIdx}")"
+                                               @bind="localIng.Optional" />
+                                        <label class="form-check-label d-md-none small" for="@($"ing-optional-{localIdx}")">Optional</label>
+                                    </div>
+                                </div>
+                                <!-- Remove -->
+                                <div style="width:40px;" class="d-flex align-items-start justify-content-end">
+                                    <button class="btn btn-outline-danger btn-sm"
+                                            type="button"
+                                            title="Remove ingredient"
+                                            @onclick="() => RemoveIngredient(localIdx)">
+                                        &times;
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Save error -->
+        @if (saveError != null)
+        {
+            <div class="text-danger mb-3 small">
+                <strong>Save failed:</strong> @saveError
+            </div>
+        }
+
+        <!-- Action buttons -->
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" @onclick="Save" disabled="@isSaving">
+                @if (isSaving)
+                {
+                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                }
+                @(Id.HasValue ? "Save Changes" : "Create Recipe")
+            </button>
+            <button class="btn btn-outline-secondary" @onclick="Cancel" disabled="@isSaving">Cancel</button>
+        </div>
+    }
+
+</div>
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+
+    // ---- Load state ----
+    private bool isLoading = false;
+
+    // ---- Import ----
+    private string? importUrl;
+    private bool isImporting = false;
+    private string? importError;
+
+    // ---- Form fields ----
+    private string name = string.Empty;
+    private string? description;
+    private RecipeCategory category = RecipeCategory.Dinner;
+    private int servings = 2;
+    private int? prepTimeMinutes;
+    private int? cookTimeMinutes;
+    private string instructions = string.Empty;
+    private string tagsRaw = string.Empty;
+
+    // ---- Ingredients ----
+    private List<IngredientRow> ingredients = [];
+
+    // ---- Save state ----
+    private bool isSaving = false;
+    private string? saveError;
+
+    // ---- Validation ----
+    private Dictionary<string, string> validationErrors = [];
+
+    // ---- Enum values ----
+    private static readonly RecipeCategory[] AllCategories = Enum.GetValues<RecipeCategory>();
+    private static readonly ShoppingCategory[] AllShoppingCategories = Enum.GetValues<ShoppingCategory>();
+
+    // ---- Nested mutable class for ingredient form state ----
+    private class IngredientRow
+    {
+        public string Name { get; set; } = string.Empty;
+        public decimal Quantity { get; set; } = 1;
+        public string Unit { get; set; } = string.Empty;
+        public ShoppingCategory ShoppingCategory { get; set; } = ShoppingCategory.Other;
+        public bool Optional { get; set; } = false;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            isLoading = true;
+            try
+            {
+                var recipe = await RecipeApi.GetRecipeAsync(Id.Value);
+                if (recipe != null)
+                {
+                    name = recipe.Name;
+                    description = recipe.Description;
+                    category = recipe.Category;
+                    servings = recipe.Servings;
+                    prepTimeMinutes = recipe.PrepTimeMinutes;
+                    cookTimeMinutes = recipe.CookTimeMinutes;
+                    instructions = recipe.Instructions;
+                    tagsRaw = string.Join(", ", recipe.Tags);
+                    ingredients = recipe.Ingredients.Select(i => new IngredientRow
+                    {
+                        Name = i.Name,
+                        Quantity = i.Quantity,
+                        Unit = i.Unit ?? string.Empty,
+                        ShoppingCategory = i.ShoppingCategory,
+                        Optional = i.Optional
+                    }).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                saveError = $"Could not load recipe: {ex.Message}";
+            }
+            finally
+            {
+                isLoading = false;
+            }
+        }
+    }
+
+    // ---- Import ----
+
+    private async Task ImportFromUrl()
+    {
+        if (string.IsNullOrWhiteSpace(importUrl)) return;
+
+        importError = null;
+        isImporting = true;
+        try
+        {
+            var result = await RecipeApi.ImportRecipeAsync(new ImportRecipeRequest(importUrl.Trim()));
+            // Pre-fill form fields from imported recipe
+            name = result.Name;
+            description = result.Description;
+            category = result.Category;
+            servings = result.Servings;
+            prepTimeMinutes = result.PrepTimeMinutes;
+            cookTimeMinutes = result.CookTimeMinutes;
+            instructions = result.Instructions;
+            tagsRaw = string.Join(", ", result.Tags);
+            ingredients = result.Ingredients.Select(i => new IngredientRow
+            {
+                Name = i.Name,
+                Quantity = i.Quantity,
+                Unit = i.Unit ?? string.Empty,
+                ShoppingCategory = i.ShoppingCategory,
+                Optional = i.Optional
+            }).ToList();
+            importUrl = null;
+        }
+        catch (Exception ex)
+        {
+            importError = $"Import failed: {ex.Message}";
+        }
+        finally
+        {
+            isImporting = false;
+        }
+    }
+
+    // ---- Ingredients ----
+
+    private void AddIngredient()
+    {
+        ingredients.Add(new IngredientRow());
+    }
+
+    private void RemoveIngredient(int index)
+    {
+        if (index >= 0 && index < ingredients.Count)
+        {
+            ingredients.RemoveAt(index);
+        }
+    }
+
+    // ---- Validation ----
+
+    private bool Validate()
+    {
+        validationErrors = [];
+
+        if (string.IsNullOrWhiteSpace(name))
+            validationErrors["Name"] = "Name is required.";
+
+        if (servings <= 0)
+            validationErrors["Servings"] = "Servings must be greater than 0.";
+
+        if (string.IsNullOrWhiteSpace(instructions))
+            validationErrors["Instructions"] = "Instructions are required.";
+
+        if (ingredients.Count == 0)
+            validationErrors["Ingredients"] = "At least one ingredient is required.";
+
+        for (var i = 0; i < ingredients.Count; i++)
+        {
+            var ing = ingredients[i];
+            if (string.IsNullOrWhiteSpace(ing.Name))
+                validationErrors[$"Ingredient[{i}].Name"] = "Name is required.";
+            if (ing.Quantity <= 0)
+                validationErrors[$"Ingredient[{i}].Quantity"] = "Quantity must be greater than 0.";
+        }
+
+        return validationErrors.Count == 0;
+    }
+
+    // ---- Save ----
+
+    private async Task Save()
+    {
+        if (!Validate()) return;
+
+        saveError = null;
+        isSaving = true;
+        try
+        {
+            var tags = tagsRaw
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(t => !string.IsNullOrEmpty(t))
+                .ToList();
+
+            var ingredientRequests = ingredients.Select(i => new RecipeIngredientRequest(
+                i.Name.Trim(),
+                i.Quantity,
+                i.Unit.Trim(),
+                i.ShoppingCategory,
+                i.Optional
+            )).ToList();
+
+            if (Id.HasValue)
+            {
+                var request = new UpdateRecipeRequest(
+                    name.Trim(),
+                    string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
+                    category,
+                    servings,
+                    prepTimeMinutes,
+                    cookTimeMinutes,
+                    instructions.Trim(),
+                    tags,
+                    ingredientRequests
+                );
+                await RecipeApi.UpdateRecipeAsync(Id.Value, request);
+                NavigationManager.NavigateTo($"/recipes/{Id.Value}");
+            }
+            else
+            {
+                var request = new CreateRecipeRequest(
+                    name.Trim(),
+                    string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
+                    category,
+                    servings,
+                    prepTimeMinutes,
+                    cookTimeMinutes,
+                    instructions.Trim(),
+                    tags,
+                    ingredientRequests
+                );
+                var created = await RecipeApi.CreateRecipeAsync(request);
+                NavigationManager.NavigateTo($"/recipes/{created.Id}");
+            }
+        }
+        catch (Exception ex)
+        {
+            saveError = $"Could not save recipe: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    // ---- Cancel ----
+
+    private void Cancel()
+    {
+        if (Id.HasValue)
+            NavigationManager.NavigateTo($"/recipes/{Id.Value}");
+        else
+            NavigationManager.NavigateTo("/recipes");
+    }
+}

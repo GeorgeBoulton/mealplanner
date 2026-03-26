@@ -41,7 +41,7 @@
 - [x] Create typed API client services (RecipeApiClient, MealPlanApiClient, etc)
 - [x] Build recipe list page with search and category filter per specs/blazor-frontend.md
 - [x] Build recipe detail page per specs/blazor-frontend.md
-- [ ] Build add/edit recipe page with dynamic ingredient rows per specs/blazor-frontend.md
+- [x] Build add/edit recipe page with dynamic ingredient rows per specs/blazor-frontend.md
 - [ ] Build recipe import (URL scrape) flow per specs/blazor-frontend.md
 - [ ] Build meal planner week view per specs/blazor-frontend.md
 - [ ] Build shopping list page with tick-off and export per specs/blazor-frontend.md
