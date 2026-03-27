@@ -50,8 +50,8 @@
 - [ ] Responsive polish — verify all pages work on mobile
 
 ### Phase 7: Deployment
-- [ ] Create Dockerfiles for API and Web projects
-- [ ] Verify full docker-compose up works end-to-end
+- [x] Create Dockerfiles for API and Web projects
+- [x] Verify full docker-compose up works end-to-end
 - [x] Add auto-migration on API startup
 
 ## Completed

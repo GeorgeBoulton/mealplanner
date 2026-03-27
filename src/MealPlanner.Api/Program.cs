@@ -23,6 +23,7 @@ app.UseExceptionHandler("/error");
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+app.MapGet("/health", () => Results.Ok());
 
 // Apply database migrations on startup
 using (var scope = app.Services.CreateScope())

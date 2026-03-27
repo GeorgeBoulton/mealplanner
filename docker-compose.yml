@@ -9,6 +9,11 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mealplanner -d mealplanner"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   api:
     build:
@@ -19,7 +24,14 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=mealplanner;Username=mealplanner;Password=mealplanner_dev"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   web:
     build:
@@ -30,7 +42,8 @@ services:
     environment:
       ApiBaseUrl: "http://api:8080"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
 volumes:
   pgdata:
