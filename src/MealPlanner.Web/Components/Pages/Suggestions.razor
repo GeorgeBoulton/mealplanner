@@ -1,0 +1,301 @@
+@page "/suggestions"
+@rendermode InteractiveServer
+@inject FridgeApiClient FridgeApi
+@inject NavigationManager NavigationManager
+
+<PageTitle>What Can I Make?</PageTitle>
+
+<div class="container-fluid py-3">
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h1 class="h3 mb-0">What Can I Make?</h1>
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-primary" @onclick="RefreshAll" disabled="@(isLoading || isLoadingSuggestions)">
+                @if (isLoadingSuggestions)
+                {
+                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                }
+                Refresh Suggestions
+            </button>
+            <button class="btn btn-outline-danger" @onclick="ClearAll" disabled="@(isLoading || fridgeItems.Count == 0)">
+                Clear All
+            </button>
+        </div>
+    </div>
+
+    @if (errorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <strong>Error:</strong> @errorMessage
+        </div>
+    }
+
+    <!-- Fridge Contents Section -->
+    <div class="card mb-4">
+        <div class="card-header fw-semibold">
+            Fridge Contents
+            <span class="badge bg-secondary ms-2">@fridgeItems.Count</span>
+        </div>
+        <div class="card-body">
+            @if (isLoading)
+            {
+                <div class="d-flex justify-content-center py-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Pills for current fridge items -->
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    @if (fridgeItems.Count == 0)
+                    {
+                        <span class="text-muted fst-italic">No items in fridge. Add some below!</span>
+                    }
+                    @foreach (var item in fridgeItems)
+                    {
+                        var capturedItem = item;
+                        <span class="badge bg-primary fs-6 d-inline-flex align-items-center gap-1 px-3 py-2">
+                            @capturedItem.Name
+                            @if (capturedItem.Quantity.HasValue)
+                            {
+                                <text> (@capturedItem.Quantity @capturedItem.Unit)</text>
+                            }
+                            <button type="button"
+                                    class="btn-close btn-close-white ms-1"
+                                    style="font-size:0.6rem;"
+                                    aria-label="Remove @capturedItem.Name"
+                                    @onclick="() => RemoveItem(capturedItem)">
+                            </button>
+                        </span>
+                    }
+                </div>
+
+                <!-- Quick-add input -->
+                <div class="input-group" style="max-width:400px;">
+                    <input type="text"
+                           class="form-control"
+                           placeholder="Add ingredient (press Enter)"
+                           @bind="newItemName"
+                           @bind:event="oninput"
+                           @onkeydown="OnNewItemKeyDown" />
+                    <button class="btn btn-outline-secondary"
+                            type="button"
+                            @onclick="AddItem"
+                            disabled="@string.IsNullOrWhiteSpace(newItemName)">
+                        Add
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Suggestions Section -->
+    <h2 class="h5 mb-3">Recipe Suggestions</h2>
+
+    @if (isLoadingSuggestions)
+    {
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading suggestions...</span>
+            </div>
+        </div>
+    }
+    else if (suggestions.Count == 0)
+    {
+        <div class="text-center py-5 text-muted">
+            <p class="fs-5">No recipe suggestions found.</p>
+            <p class="small">Add some ingredients to your fridge to see what you can make.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var s in suggestions.OrderByDescending(x => x.MatchPercentage))
+            {
+                var suggestion = s;
+                var matchPct = (int)Math.Round(suggestion.MatchPercentage);
+                var progressClass = matchPct >= 75 ? "bg-success" : matchPct >= 40 ? "bg-warning" : "bg-danger";
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="card h-100 shadow-sm" style="cursor:pointer;"
+                         @onclick="() => GoToRecipe(suggestion.Recipe.Id)">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title mb-2">@suggestion.Recipe.Name</h5>
+
+                            <!-- Match percentage bar -->
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span class="text-muted">Match</span>
+                                    <span class="fw-semibold">@matchPct%</span>
+                                </div>
+                                <div class="progress" style="height:8px;">
+                                    <div class="progress-bar @progressClass"
+                                         role="progressbar"
+                                         style="width:@(matchPct)%;"
+                                         aria-valuenow="@matchPct"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Missing ingredients -->
+                            @if (suggestion.MissingIngredients.Count > 0)
+                            {
+                                <div class="mb-3">
+                                    <p class="small text-muted mb-1 fw-semibold">Missing ingredients:</p>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @foreach (var missing in suggestion.MissingIngredients)
+                                        {
+                                            <span class="badge bg-light text-dark border">@missing</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="small text-success mb-3 fw-semibold">You have all the ingredients!</p>
+                            }
+
+                            <!-- Actions -->
+                            <div class="mt-auto d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary"
+                                        @onclick:stopPropagation="true"
+                                        @onclick="() => GoToRecipe(suggestion.Recipe.Id)">
+                                    View Recipe
+                                </button>
+                                <button class="btn btn-sm btn-primary"
+                                        @onclick:stopPropagation="true"
+                                        @onclick="() => GoToRecipe(suggestion.Recipe.Id)">
+                                    Add to Meal Plan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+</div>
+
+@code {
+    private List<FridgeItemResponse> fridgeItems = [];
+    private List<RecipeSuggestionResponse> suggestions = [];
+    private string newItemName = "";
+    private bool isLoading = true;
+    private bool isLoadingSuggestions = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFridgeItems();
+        await LoadSuggestions();
+    }
+
+    private async Task LoadFridgeItems()
+    {
+        isLoading = true;
+        errorMessage = null;
+        try
+        {
+            fridgeItems = await FridgeApi.GetFridgeItemsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not load fridge contents: {ex.Message}";
+            fridgeItems = [];
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadSuggestions()
+    {
+        isLoadingSuggestions = true;
+        try
+        {
+            suggestions = await FridgeApi.GetSuggestionsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not load suggestions: {ex.Message}";
+            suggestions = [];
+        }
+        finally
+        {
+            isLoadingSuggestions = false;
+        }
+    }
+
+    private async Task RefreshAll()
+    {
+        await LoadFridgeItems();
+        await LoadSuggestions();
+    }
+
+    private async Task OnNewItemKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await AddItem();
+        }
+    }
+
+    private async Task AddItem()
+    {
+        var name = newItemName.Trim();
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        try
+        {
+            var created = await FridgeApi.CreateFridgeItemAsync(new CreateFridgeItemRequest(name, null, null));
+            fridgeItems.Add(created);
+            newItemName = "";
+            await LoadSuggestions();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not add item: {ex.Message}";
+        }
+    }
+
+    private async Task RemoveItem(FridgeItemResponse item)
+    {
+        try
+        {
+            await FridgeApi.DeleteFridgeItemAsync(item.Id);
+            fridgeItems.Remove(item);
+            await LoadSuggestions();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not remove item: {ex.Message}";
+        }
+    }
+
+    private async Task ClearAll()
+    {
+        errorMessage = null;
+        var itemsCopy = fridgeItems.ToList();
+        foreach (var item in itemsCopy)
+        {
+            try
+            {
+                await FridgeApi.DeleteFridgeItemAsync(item.Id);
+                fridgeItems.Remove(item);
+            }
+            catch (Exception ex)
+            {
+                errorMessage = $"Could not remove '{item.Name}': {ex.Message}";
+                break;
+            }
+        }
+        await LoadSuggestions();
+    }
+
+    private void GoToRecipe(Guid id) => NavigationManager.NavigateTo($"/recipes/{id}");
+}

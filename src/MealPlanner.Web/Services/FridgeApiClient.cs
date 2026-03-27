@@ -31,4 +31,10 @@ public class FridgeApiClient(IHttpClientFactory factory)
         var response = await CreateClient().DeleteAsync($"/api/fridge/{id}", ct);
         response.EnsureSuccessStatusCode();
     }
+
+    public async Task<List<RecipeSuggestionResponse>> GetSuggestionsAsync(CancellationToken ct = default)
+    {
+        var client = CreateClient();
+        return await client.GetFromJsonAsync<List<RecipeSuggestionResponse>>("/api/fridge/suggestions", ct) ?? [];
+    }
 }
