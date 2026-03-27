@@ -1,6 +1,5 @@
 using MealPlanner.Application.DTOs;
 using MealPlanner.Application.Interfaces;
-using MealPlanner.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MealPlanner.Api.Controllers;

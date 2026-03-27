@@ -1,10 +1,10 @@
 using MealPlanner.Application.DTOs;
 using MealPlanner.Application.Interfaces;
 using MealPlanner.Domain.Entities;
-using MealPlanner.Domain.Enums;
 using MealPlanner.Domain.Interfaces;
 using MealPlanner.Domain.Services;
 using MealPlanner.Domain.ValueObjects;
+using DomainEnums = MealPlanner.Domain.Enums;
 
 namespace MealPlanner.Application.Services;
 
@@ -29,7 +29,8 @@ public class RecipeService : IRecipeService
 
     public async Task<IReadOnlyList<RecipeResponse>> GetAllAsync(string? search, RecipeCategory? category, CancellationToken ct = default)
     {
-        var recipes = await _recipeRepository.SearchAsync(search, category, ct);
+        DomainEnums.RecipeCategory? domainCategory = category.HasValue ? (DomainEnums.RecipeCategory)(int)category.Value : null;
+        var recipes = await _recipeRepository.SearchAsync(search, domainCategory, ct);
         return recipes.Select(MapToResponse).ToList();
     }
 
@@ -45,7 +46,7 @@ public class RecipeService : IRecipeService
         var recipe = Recipe.Create(
             request.Name,
             request.Description,
-            request.Category,
+            (DomainEnums.RecipeCategory)(int)request.Category,
             request.Servings,
             request.PrepTimeMinutes,
             request.CookTimeMinutes,
@@ -68,7 +69,7 @@ public class RecipeService : IRecipeService
         recipe.Update(
             request.Name,
             request.Description,
-            request.Category,
+            (DomainEnums.RecipeCategory)(int)request.Category,
             request.Servings,
             request.PrepTimeMinutes,
             request.CookTimeMinutes,
@@ -95,9 +96,9 @@ public class RecipeService : IRecipeService
             .Select(i => new RecipeIngredient(i.Name, i.Quantity, i.Unit, i.ShoppingCategory, i.Optional))
             .ToList();
 
-        Enum.TryParse<RecipeCategory>(scraped.Category, ignoreCase: true, out var category);
-        if (!Enum.IsDefined(typeof(RecipeCategory), category))
-            category = RecipeCategory.Dinner;
+        Enum.TryParse<DomainEnums.RecipeCategory>(scraped.Category, ignoreCase: true, out var category);
+        if (!Enum.IsDefined(typeof(DomainEnums.RecipeCategory), category))
+            category = DomainEnums.RecipeCategory.Dinner;
 
         var recipe = Recipe.Create(
             scraped.Name,
@@ -150,7 +151,7 @@ public class RecipeService : IRecipeService
 
     private static List<RecipeIngredient> MapIngredients(List<RecipeIngredientRequest> requests)
         => requests
-            .Select(r => new RecipeIngredient(r.Name, r.Quantity, r.Unit, r.ShoppingCategory, r.Optional))
+            .Select(r => new RecipeIngredient(r.Name, r.Quantity, r.Unit, (DomainEnums.ShoppingCategory)(int)r.ShoppingCategory, r.Optional))
             .ToList();
 
     private static RecipeResponse MapToResponse(Recipe recipe)
@@ -158,7 +159,7 @@ public class RecipeService : IRecipeService
             recipe.Id,
             recipe.Name,
             recipe.Description,
-            recipe.Category,
+            (RecipeCategory)(int)recipe.Category,
             recipe.Servings,
             recipe.PrepTimeMinutes,
             recipe.CookTimeMinutes,
@@ -166,7 +167,7 @@ public class RecipeService : IRecipeService
             recipe.SourceUrl,
             recipe.Tags.ToList(),
             recipe.Ingredients
-                .Select(i => new RecipeIngredientResponse(i.Name, i.Quantity, i.Unit, i.ShoppingCategory, i.Optional))
+                .Select(i => new RecipeIngredientResponse(i.Name, i.Quantity, i.Unit, (ShoppingCategory)(int)i.ShoppingCategory, i.Optional))
                 .ToList(),
             recipe.CreatedAt,
             recipe.UpdatedAt);

@@ -176,6 +176,48 @@ public class FridgeControllerTests : ApiTestBase
     }
 
     // ---------------------------------------------------------------------------
+    // DELETE /api/fridge (clear all)
+    // ---------------------------------------------------------------------------
+
+    /// <summary>
+    /// Verifies that DELETE /api/fridge removes all fridge items and returns 204 No Content,
+    /// with a subsequent GET returning an empty list.
+    /// </summary>
+    [Test]
+    public async Task ClearAll_WithExistingItems_Returns204AndEmptiesFridge()
+    {
+        // Arrange — add two items so there is something to clear.
+        await Client.PostAsJsonAsync("/api/fridge", BuildCreateRequest("Apple"));
+        await Client.PostAsJsonAsync("/api/fridge", BuildCreateRequest("Banana"));
+
+        // Act
+        var response = await Client.DeleteAsync("/api/fridge");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        var getResponse = await Client.GetAsync("/api/fridge");
+        var body = await getResponse.Content.ReadFromJsonAsync<List<FridgeItemResponse>>();
+        body.Should().NotBeNull();
+        body!.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Verifies that DELETE /api/fridge is idempotent — calling it on an already-empty
+    /// fridge still returns 204 No Content.
+    /// </summary>
+    [Test]
+    public async Task ClearAll_WithNoItems_Returns204()
+    {
+        // Arrange — database is empty.
+
+        // Act
+        var response = await Client.DeleteAsync("/api/fridge");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+    }
+
+    // ---------------------------------------------------------------------------
     // GET /api/fridge/suggestions
     // ---------------------------------------------------------------------------
 

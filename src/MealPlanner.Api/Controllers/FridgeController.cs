@@ -60,4 +60,11 @@ public class FridgeController : ControllerBase
         await _fridgeService.DeleteAsync(id, HttpContext.RequestAborted);
         return NoContent();
     }
+
+    [HttpDelete]
+    public async Task<IActionResult> ClearAll()
+    {
+        await _fridgeService.ClearAllAsync(HttpContext.RequestAborted);
+        return NoContent();
+    }
 }

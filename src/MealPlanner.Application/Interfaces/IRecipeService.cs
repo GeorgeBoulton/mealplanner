@@ -1,5 +1,4 @@
 using MealPlanner.Application.DTOs;
-using MealPlanner.Domain.Enums;
 
 namespace MealPlanner.Application.Interfaces;
 

@@ -79,6 +79,8 @@
 - [x] Add auto-migration on API startup (MealPlannerDbContext.Database.MigrateAsync() called in Program.cs)
 
 ## Known issues
-- DELETE /api/fridge (clear all) not implemented — IFridgeService has no ClearAllAsync method
 - tag, page, pageSize query params on GET /api/recipes accepted but not forwarded to service (service interface doesn't support them)
-- Web project imports MealPlanner.Domain.Enums directly (_Imports.razor) — violates DDD layering; enums should be re-exported through Application.DTOs or duplicated as DTO enums
+
+## Resolved issues
+- ~~DELETE /api/fridge (clear all) not implemented — IFridgeService has no ClearAllAsync method~~ — fixed: ClearAllAsync added to IFridgeService, FridgeService, IFridgeRepository, FridgeRepository, and FridgeController; returns 204 NoContent
+- ~~Web project imports MealPlanner.Domain.Enums directly (_Imports.razor) — violates DDD layering~~ — fixed: Application.DTOs enums (RecipeCategory, ShoppingCategory, MealType) already exist; Web _Imports.razor references MealPlanner.Application.DTOs only

@@ -99,10 +99,45 @@ def format_epoch(epoch):
 
 # ── State ────────────────────────────────────────────────────────────────────
 seen_tools = {}
-subagent_ids = set()   # track which tool_ids are subagents
+subagent_ids = set()
 subagent_count = 0
 last_block_type = None
 indent_depth = 0
+last_tool_key = None
+repeat_count = 0
+project_root = None    # auto-detected from first absolute path we see
+
+def detect_root(path):
+    """Try to detect the project root from the first path we see."""
+    global project_root
+    if project_root is not None:
+        return
+    if not isinstance(path, str) or not path.startswith("/"):
+        return
+    # Heuristic: walk up until we find a common project root indicator
+    # or just use the first path's directory
+    parts = path.split("/")
+    # Look for common patterns like repos/X, source/X, projects/X, src/X
+    for i, part in enumerate(parts):
+        if part.lower() in ("repos", "source", "projects", "src", "home", "code", "dev", "work"):
+            if i + 1 < len(parts):
+                project_root = "/".join(parts[:i+2])
+                return
+    # Fallback: if path has 5+ segments, use first 5
+    if len(parts) >= 5:
+        project_root = "/".join(parts[:5])
+
+def shorten(path):
+    """Shorten an absolute path to be relative to project root."""
+    if not isinstance(path, str):
+        return str(path)
+    detect_root(path)
+    if project_root and path.startswith(project_root):
+        rel = path[len(project_root):]
+        if rel.startswith("/"):
+            rel = rel[1:]
+        return rel or "."
+    return path
 
 SUBAGENT_TOOLS = frozenset([
     "dispatch_agent", "Agent", "agent", "Task"
@@ -121,7 +156,7 @@ def pad():
     return ""
 
 def handle_event(data):
-    global subagent_count, last_block_type, indent_depth
+    global subagent_count, last_block_type, indent_depth, last_tool_key, repeat_count
 
     evt_type = data.get("type", "")
 
@@ -137,8 +172,12 @@ def handle_event(data):
                 thinking = block.get("thinking", "")
                 if thinking and thinking.strip():
                     if last_block_type != "thinking":
+                        if repeat_count > 0:
+                            print()
+                            repeat_count = 0
+                            last_tool_key = None
                         if last_block_type is not None:
-                            print()  # blank line before new thinking section
+                            print()
                         print(f"{YELLOW}{BOLD}Thinking:{RESET}")
                         last_block_type = "thinking"
                     formatted = format_md(thinking)
@@ -148,6 +187,10 @@ def handle_event(data):
                 text = block.get("text", "")
                 if text and text.strip():
                     if last_block_type != "text":
+                        if repeat_count > 0:
+                            print()
+                            repeat_count = 0
+                            last_tool_key = None
                         print()
                         last_block_type = "text"
                     formatted = format_md(text)
@@ -163,6 +206,10 @@ def handle_event(data):
                 if is_subagent(tool_name, tool_input):
                     subagent_count += 1
                     subagent_ids.add(tool_id)
+                    if repeat_count > 0:
+                        print()
+                        repeat_count = 0
+                        last_tool_key = None
                     prompt = ""
                     if isinstance(tool_input, dict):
                         for key in ("prompt", "task", "description", "text"):
@@ -187,29 +234,44 @@ def handle_event(data):
                 else:
                     summary = ""
                     if isinstance(tool_input, dict):
-                        for key in ("command", "file_path", "path", "query",
-                                    "pattern", "regex", "file"):
+                        for key in ("file_path", "path", "file"):
                             if key in tool_input:
-                                summary = truncate(str(tool_input[key]), 100)
+                                summary = shorten(str(tool_input[key]))
                                 break
+                        if not summary:
+                            for key in ("command", "query", "pattern", "regex"):
+                                if key in tool_input:
+                                    summary = truncate(str(tool_input[key]), 100)
+                                    break
                         if not summary:
                             keys = list(tool_input.keys())[:4]
                             summary = ", ".join(keys) if keys else ""
 
-                    p = ""
-                    if tool_name in ("Bash", "bash", "execute_command"):
-                        print(f"\n{GREEN}{BOLD}⚡ {tool_name}{RESET}"
-                              f"  {BG_GREY}{BRIGHT_WHITE} {summary} {RESET}")
-                    elif tool_name in ("Read", "read_file", "View"):
-                        print(f"\n{CYAN}{BOLD}⚡ {tool_name}{RESET}"
-                              f" {CYAN}{summary}{RESET}")
-                    elif tool_name in ("Write", "write_file", "Edit",
-                                       "MultiEdit", "str_replace"):
-                        print(f"\n{YELLOW}{BOLD}⚡ {tool_name}{RESET}"
-                              f" {YELLOW}{summary}{RESET}")
+                    # Dedup: collapse consecutive same-tool-type calls
+                    if tool_name == last_tool_key:
+                        repeat_count += 1
+                        spaces = " " * 40
+                        print(f"\r{DIM}  ... {tool_name} x{repeat_count + 1} (latest: {truncate(summary, 60)}){spaces}{RESET}", end="", flush=True)
                     else:
-                        print(f"\n{GREEN}{BOLD}⚡ {tool_name}{RESET}"
-                              f" {GREEN}{summary}{RESET}")
+                        # Flush previous repeat run
+                        if repeat_count > 0:
+                            print()  # newline after counter
+                        repeat_count = 0
+                        last_tool_key = tool_name
+
+                        if tool_name in ("Bash", "bash", "execute_command"):
+                            print(f"\n{GREEN}{BOLD}⚡ {tool_name}{RESET}"
+                                  f"  {BG_GREY}{BRIGHT_WHITE} {summary} {RESET}")
+                        elif tool_name in ("Read", "read_file", "View"):
+                            print(f"\n{CYAN}{BOLD}⚡ {tool_name}{RESET}"
+                                  f" {CYAN}{summary}{RESET}")
+                        elif tool_name in ("Write", "write_file", "Edit",
+                                           "MultiEdit", "str_replace"):
+                            print(f"\n{YELLOW}{BOLD}⚡ {tool_name}{RESET}"
+                                  f" {YELLOW}{summary}{RESET}")
+                        else:
+                            print(f"\n{GREEN}{BOLD}⚡ {tool_name}{RESET}"
+                                  f" {GREEN}{summary}{RESET}")
                     last_block_type = "tool"
 
             elif btype == "tool_result":
@@ -227,8 +289,12 @@ def handle_event(data):
                             result_text = item.get("text", "")
                             break
 
-                # Subagent results
+                # Subagent results — always show
                 if tool_id in subagent_ids:
+                    if repeat_count > 0:
+                        print()
+                        repeat_count = 0
+                        last_tool_key = None
                     if result_text:
                         print(f"\n{MAGENTA}  ✓ subagent done: {truncate(result_text, 100)}{RESET}")
                     else:
@@ -236,13 +302,19 @@ def handle_event(data):
                     print()
                     last_block_type = "subagent_result"
 
+                # Errors — always show
                 elif is_error:
-                    print(f"{RED}  ✗ {tool_name or 'tool'} error: "
+                    if repeat_count > 0:
+                        print()
+                        repeat_count = 0
+                        last_tool_key = None
+                    print(f"\n{RED}  ✗ {tool_name or 'tool'} error: "
                           f"{truncate(result_text or str(content_val), 200)}{RESET}")
                     print()
                     last_block_type = "error"
 
-                else:
+                # Regular results — suppress during dedup runs
+                elif repeat_count == 0:
                     if result_text:
                         lines = result_text.strip().split("\n")
                         if len(lines) <= 6:

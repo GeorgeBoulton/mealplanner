@@ -3,6 +3,7 @@ using MealPlanner.Application.Interfaces;
 using MealPlanner.Domain.Entities;
 using MealPlanner.Domain.Interfaces;
 using MealPlanner.Domain.Services;
+using DomainEnums = MealPlanner.Domain.Enums;
 
 namespace MealPlanner.Application.Services;
 
@@ -58,6 +59,11 @@ public class FridgeService : IFridgeService
         return true;
     }
 
+    public async Task ClearAllAsync(CancellationToken ct = default)
+    {
+        await _fridgeRepository.ClearAllAsync(ct);
+    }
+
     public async Task<IReadOnlyList<RecipeSuggestionResponse>> GetSuggestionsAsync(CancellationToken ct = default)
     {
         var recipes = await _recipeRepository.GetAllAsync(ct);
@@ -89,7 +95,7 @@ public class FridgeService : IFridgeService
             recipe.Id,
             recipe.Name,
             recipe.Description,
-            recipe.Category,
+            (RecipeCategory)(int)recipe.Category,
             recipe.Servings,
             recipe.PrepTimeMinutes,
             recipe.CookTimeMinutes,
@@ -100,7 +106,7 @@ public class FridgeService : IFridgeService
                 i.Name,
                 i.Quantity,
                 i.Unit,
-                i.ShoppingCategory,
+                (ShoppingCategory)(int)i.ShoppingCategory,
                 i.Optional)).ToList(),
             recipe.CreatedAt,
             recipe.UpdatedAt);

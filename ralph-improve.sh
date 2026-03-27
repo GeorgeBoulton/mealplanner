@@ -7,6 +7,8 @@
 #
 # Requires: claude (Claude Code CLI), python3
 
+set -euo pipefail
+
 PROMPT_FILE="${1:?Usage: ./ralph.sh PROMPT_FILE.md [--log]}"
 LOG_ENABLED=false
 LOG_DIR="./logs"
@@ -37,14 +39,11 @@ FORMATTER=$(cat << 'PYEOF'
 import sys
 import json
 import os
-import re
-from datetime import datetime, timezone
 
 # ── ANSI ─────────────────────────────────────────────────────────────────────
 RESET   = "\033[0m"
 BOLD    = "\033[1m"
 DIM     = "\033[2m"
-UNDERLINE = "\033[4m"
 
 RED     = "\033[31m"
 GREEN   = "\033[32m"
@@ -54,10 +53,6 @@ MAGENTA = "\033[35m"
 CYAN    = "\033[36m"
 WHITE   = "\033[37m"
 GREY    = "\033[90m"
-BRIGHT_WHITE = "\033[97m"
-BRIGHT_CYAN  = "\033[96m"
-
-BG_GREY = "\033[48;5;236m"
 
 try:
     cols = os.get_terminal_size().columns
@@ -71,61 +66,19 @@ def truncate(s, n=150):
     s = s.replace("\n", " ").replace("\r", "")
     return s[:n] + "..." if len(s) > n else s
 
-def format_md(text):
-    text = re.sub(r'\*\*(.+?)\*\*', f'{BOLD}{BRIGHT_WHITE}\\1{RESET}{GREY}', text)
-    text = re.sub(r'`([^`]+)`', f'{BRIGHT_CYAN}\\1{RESET}{GREY}', text)
-    text = re.sub(r'^(#{1,3})\s+(.+)$', f'{BOLD}{BRIGHT_WHITE}\\2{RESET}{GREY}', text, flags=re.MULTILINE)
-    return text
-
-def format_epoch(epoch):
-    try:
-        ts = float(epoch)
-        if ts > 1e12:
-            ts = ts / 1000
-        dt = datetime.fromtimestamp(ts, tz=timezone.utc)
-        now = datetime.now(tz=timezone.utc)
-        diff = dt - now
-        secs = int(diff.total_seconds())
-        if secs < 0:
-            return dt.strftime("%H:%M:%S")
-        elif secs < 60:
-            return f"{secs}s"
-        elif secs < 3600:
-            return f"{secs // 60}m {secs % 60}s"
-        else:
-            return f"{secs // 3600}h {(secs % 3600) // 60}m"
-    except (ValueError, TypeError, OSError):
-        return str(epoch)
-
 # ── State ────────────────────────────────────────────────────────────────────
 seen_tools = {}
-subagent_ids = set()   # track which tool_ids are subagents
 subagent_count = 0
 last_block_type = None
-indent_depth = 0
-
-SUBAGENT_TOOLS = frozenset([
-    "dispatch_agent", "Agent", "agent", "Task"
-])
-
-def is_subagent(tool_name, tool_input):
-    """Detect if a tool_use is actually a subagent dispatch."""
-    if tool_name in SUBAGENT_TOOLS:
-        return True
-    # Some tools carry a subagent_type field — that's a giveaway
-    if isinstance(tool_input, dict) and tool_input.get("subagent_type"):
-        return True
-    return False
-
-def pad():
-    return ""
 
 def handle_event(data):
-    global subagent_count, last_block_type, indent_depth
+    global subagent_count, last_block_type
 
     evt_type = data.get("type", "")
 
     # ─── ASSISTANT messages ──────────────────────────────────────────────
+    # Main event type from claude --output-format stream-json --verbose
+    # Contains message.content[] with thinking, text, tool_use, tool_result
     if evt_type == "assistant":
         msg = data.get("message", {})
         content = msg.get("content", [])
@@ -137,12 +90,9 @@ def handle_event(data):
                 thinking = block.get("thinking", "")
                 if thinking and thinking.strip():
                     if last_block_type != "thinking":
-                        if last_block_type is not None:
-                            print()  # blank line before new thinking section
-                        print(f"{YELLOW}{BOLD}Thinking:{RESET}")
+                        print(f"\n{YELLOW}{BOLD}Thinking:{RESET}")
                         last_block_type = "thinking"
-                    formatted = format_md(thinking)
-                    print(f"{GREY}{formatted}{RESET}", end="", flush=True)
+                    print(f"{GREY}{thinking}{RESET}", end="", flush=True)
 
             elif btype == "text":
                 text = block.get("text", "")
@@ -150,8 +100,7 @@ def handle_event(data):
                     if last_block_type != "text":
                         print()
                         last_block_type = "text"
-                    formatted = format_md(text)
-                    print(f"{WHITE}{formatted}{RESET}", end="", flush=True)
+                    print(f"{WHITE}{text}{RESET}", end="", flush=True)
 
             elif btype == "tool_use":
                 tool_name = block.get("name", "unknown")
@@ -160,9 +109,9 @@ def handle_event(data):
                 seen_tools[tool_id] = tool_name
 
                 # ── Subagent dispatch ────────────────────────────────
-                if is_subagent(tool_name, tool_input):
+                if tool_name in ("dispatch_agent", "Agent", "agent", "Task",
+                                 "Explore", "CodeEdit", "MultiTool"):
                     subagent_count += 1
-                    subagent_ids.add(tool_id)
                     prompt = ""
                     if isinstance(tool_input, dict):
                         for key in ("prompt", "task", "description", "text"):
@@ -179,8 +128,8 @@ def handle_event(data):
                         agent_type = tool_input.get("subagent_type", "")
 
                     label = f"{agent_type}: " if agent_type else ""
-                    print(f"\n{MAGENTA}{BOLD}  🔀 subagent #{subagent_count}: "
-                          f"{label}{truncate(prompt, 100)}{RESET}\n")
+                    print(f"\n{MAGENTA}  🔀 subagent #{subagent_count}: "
+                          f"{label}{truncate(prompt, 120)}{RESET}")
                     last_block_type = "subagent"
 
                 # ── Regular tools ────────────────────────────────────
@@ -196,20 +145,8 @@ def handle_event(data):
                             keys = list(tool_input.keys())[:4]
                             summary = ", ".join(keys) if keys else ""
 
-                    p = ""
-                    if tool_name in ("Bash", "bash", "execute_command"):
-                        print(f"\n{GREEN}{BOLD}⚡ {tool_name}{RESET}"
-                              f"  {BG_GREY}{BRIGHT_WHITE} {summary} {RESET}")
-                    elif tool_name in ("Read", "read_file", "View"):
-                        print(f"\n{CYAN}{BOLD}⚡ {tool_name}{RESET}"
-                              f" {CYAN}{summary}{RESET}")
-                    elif tool_name in ("Write", "write_file", "Edit",
-                                       "MultiEdit", "str_replace"):
-                        print(f"\n{YELLOW}{BOLD}⚡ {tool_name}{RESET}"
-                              f" {YELLOW}{summary}{RESET}")
-                    else:
-                        print(f"\n{GREEN}{BOLD}⚡ {tool_name}{RESET}"
-                              f" {GREEN}{summary}{RESET}")
+                    print(f"\n{GREEN}{BOLD}⚡ {tool_name}{RESET}"
+                          f"{GREEN} {summary}{RESET}")
                     last_block_type = "tool"
 
             elif btype == "tool_result":
@@ -218,6 +155,7 @@ def handle_event(data):
                 tool_name = seen_tools.get(tool_id, "")
                 is_error = block.get("is_error", False)
 
+                # Extract text from content
                 result_text = ""
                 if isinstance(content_val, str):
                     result_text = content_val
@@ -227,19 +165,18 @@ def handle_event(data):
                             result_text = item.get("text", "")
                             break
 
-                # Subagent results
-                if tool_id in subagent_ids:
+                # Subagent results — compact
+                if tool_name in ("dispatch_agent", "Agent", "agent", "Task",
+                                 "Explore", "CodeEdit", "MultiTool"):
                     if result_text:
-                        print(f"\n{MAGENTA}  ✓ subagent done: {truncate(result_text, 100)}{RESET}")
+                        print(f"{MAGENTA}  ✓ done: {truncate(result_text, 100)}{RESET}")
                     else:
-                        print(f"\n{MAGENTA}  ✓ subagent done{RESET}")
-                    print()
+                        print(f"{MAGENTA}  ✓ done{RESET}")
                     last_block_type = "subagent_result"
 
                 elif is_error:
                     print(f"{RED}  ✗ {tool_name or 'tool'} error: "
                           f"{truncate(result_text or str(content_val), 200)}{RESET}")
-                    print()
                     last_block_type = "error"
 
                 else:
@@ -254,10 +191,10 @@ def handle_event(data):
                             print(f"{DIM}  | ... ({len(lines)} lines){RESET}")
                             for line in lines[-2:]:
                                 print(f"{CYAN}  | {line}{RESET}")
-                    print()
                     last_block_type = "result"
 
-    # ─── USER messages (subagent input) — suppress ───────────────────────
+    # ─── USER messages (subagent input) ──────────────────────────────────
+    # These are the noisy JSON blobs — suppress them entirely
     elif evt_type == "user":
         pass
 
@@ -295,34 +232,14 @@ def handle_event(data):
             print(f"{BLUE}i {truncate(str(msg), 150)}{RESET}")
         last_block_type = "system"
 
-    # ─── RATE LIMIT — only show if actually blocked ──────────────────────
+    # ─── RATE LIMIT ──────────────────────────────────────────────────────
     elif evt_type == "rate_limit_event":
         info = data.get("rate_limit_info", {})
         status = info.get("status", "")
         ltype = info.get("rateLimitType", "")
         resets = info.get("resetsAt", "")
-        if status not in ("allowed", "allowed_warning"):
-            resets_str = ""
-            wait_secs = 0
-            if resets:
-                try:
-                    ts = float(resets)
-                    if ts > 1e12:
-                        ts = ts / 1000
-                    dt = datetime.fromtimestamp(ts, tz=timezone.utc)
-                    now = datetime.now(tz=timezone.utc)
-                    wait_secs = max(0, int((dt - now).total_seconds()))
-                    resets_str = f"  resets in {format_epoch(resets)}"
-                except (ValueError, TypeError):
-                    pass
-            print(f"\n{RED}{BOLD}⏱ RATE LIMITED: {status} ({ltype}){resets_str}{RESET}")
-            # Write wait time to temp file so bash loop can backoff
-            if wait_secs > 0:
-                try:
-                    with open("/tmp/ralph_backoff", "w") as f:
-                        f.write(str(wait_secs))
-                except OSError:
-                    pass
+        print(f"{YELLOW}Rate limit: {status} ({ltype})"
+              f"{f'  resets: {resets}' if resets else ''}{RESET}")
         last_block_type = "rate_limit"
 
     # ─── ERROR ───────────────────────────────────────────────────────────
@@ -372,47 +289,26 @@ while :; do
 
     PROMPT_CONTENT="$(cat "$PROMPT_FILE")"
 
-    # Check if we got rate limited and need to back off
-    rm -f /tmp/ralph_backoff 2>/dev/null  # clean before run
-
     if $LOG_ENABLED; then
         LOGFILE="${LOG_DIR}/ralph-loop-${LOOP}-$(date +'%Y%m%d-%H%M%S').jsonl"
         claude -p "$PROMPT_CONTENT" \
             --dangerously-skip-permissions \
             --output-format stream-json \
             --verbose \
-            2>&1 | tee "$LOGFILE" | python3 -u -c "$FORMATTER" || true
+            2>&1 | tee "$LOGFILE" | python3 -u -c "$FORMATTER"
         echo -e "\033[90m  Log: ${LOGFILE}\033[0m"
     else
         claude -p "$PROMPT_CONTENT" \
             --dangerously-skip-permissions \
             --output-format stream-json \
             --verbose \
-            2>&1 | python3 -u -c "$FORMATTER" || true
+            2>&1 | python3 -u -c "$FORMATTER"
     fi
 
-    # If rate limited, wait until the limit resets
-    if [[ -f /tmp/ralph_backoff ]]; then
-        WAIT_SECS=$(cat /tmp/ralph_backoff 2>/dev/null || echo "0")
-        rm -f /tmp/ralph_backoff
-        if [[ "$WAIT_SECS" -gt 0 ]] 2>/dev/null; then
-            WAIT_MINS=$(( WAIT_SECS / 60 ))
-            echo ""
-            echo -e "\033[33m  ⏱ Rate limited. Waiting ${WAIT_MINS}m ${WAIT_SECS}s until reset...\033[0m"
-            echo -e "\033[90m  (Ctrl+C to stop)\033[0m"
-
-            # Countdown
-            REMAINING=$WAIT_SECS
-            while [[ $REMAINING -gt 0 ]]; do
-                MINS=$(( REMAINING / 60 ))
-                SECS=$(( REMAINING % 60 ))
-                printf "\r\033[33m  ⏱ %02d:%02d remaining...\033[0m" "$MINS" "$SECS"
-                sleep 1
-                REMAINING=$(( REMAINING - 1 ))
-            done
-            echo -e "\r\033[32m  ✓ Rate limit reset, resuming...                    \033[0m"
-            continue
-        fi
+    EXIT_CODE=$?
+    if [[ $EXIT_CODE -ne 0 ]]; then
+        echo -e "\033[31mClaude exited with code ${EXIT_CODE}, continuing...\033[0m"
+        sleep 2
     fi
 
     echo -e "\033[90m  Next loop in 3s... (Ctrl+C to stop)\033[0m"

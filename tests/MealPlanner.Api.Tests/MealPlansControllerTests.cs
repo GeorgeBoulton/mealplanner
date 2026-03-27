@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using MealPlanner.Application.DTOs;
-using MealPlanner.Domain.Enums;
 
 namespace MealPlanner.Api.Tests;
 

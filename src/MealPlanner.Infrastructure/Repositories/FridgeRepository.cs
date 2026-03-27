@@ -45,4 +45,11 @@ public class FridgeRepository : IFridgeRepository
         _context.FridgeItems.Remove(fridgeItem);
         await _context.SaveChangesAsync(ct);
     }
+
+    public async Task ClearAllAsync(CancellationToken ct = default)
+    {
+        var items = await _context.FridgeItems.ToListAsync(ct);
+        _context.FridgeItems.RemoveRange(items);
+        await _context.SaveChangesAsync(ct);
+    }
 }

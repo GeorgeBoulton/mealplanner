@@ -2,9 +2,9 @@ using FluentAssertions;
 using MealPlanner.Application.DTOs;
 using MealPlanner.Application.Services;
 using MealPlanner.Domain.Entities;
-using MealPlanner.Domain.Enums;
 using MealPlanner.Domain.Interfaces;
 using NSubstitute;
+using DomainEnums = MealPlanner.Domain.Enums;
 
 namespace MealPlanner.Application.Tests;
 
@@ -298,7 +298,7 @@ public class MealPlanServiceTests
         var mealPlan = BuildMealPlan(weekStart);
 
         // Add an initial entry to the meal plan
-        var initialEntry = MealPlanEntry.Create(mealPlan.Id, weekStart, MealType.Breakfast, Guid.NewGuid(), 1);
+        var initialEntry = MealPlanEntry.Create(mealPlan.Id, weekStart, DomainEnums.MealType.Breakfast, Guid.NewGuid(), 1);
         mealPlan.AddEntry(initialEntry);
 
         _mealPlanRepository.GetByIdAsync(mealPlan.Id, Arg.Any<CancellationToken>())
@@ -361,7 +361,7 @@ public class MealPlanServiceTests
         var weekStart = new DateOnly(2025, 3, 17);
         var mealPlan = BuildMealPlan(weekStart);
 
-        var entry = MealPlanEntry.Create(mealPlan.Id, weekStart, MealType.Lunch, Guid.NewGuid(), 2);
+        var entry = MealPlanEntry.Create(mealPlan.Id, weekStart, DomainEnums.MealType.Lunch, Guid.NewGuid(), 2);
         mealPlan.AddEntry(entry);
 
         _mealPlanRepository.GetByIdAsync(mealPlan.Id, Arg.Any<CancellationToken>())

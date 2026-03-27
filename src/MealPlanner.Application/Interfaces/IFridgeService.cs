@@ -9,5 +9,6 @@ public interface IFridgeService
     Task<FridgeItemResponse> CreateAsync(CreateFridgeItemRequest request, CancellationToken ct = default);
     Task<FridgeItemResponse?> UpdateAsync(Guid id, UpdateFridgeItemRequest request, CancellationToken ct = default);
     Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
+    Task ClearAllAsync(CancellationToken ct = default);
     Task<IReadOnlyList<RecipeSuggestionResponse>> GetSuggestionsAsync(CancellationToken ct = default);
 }

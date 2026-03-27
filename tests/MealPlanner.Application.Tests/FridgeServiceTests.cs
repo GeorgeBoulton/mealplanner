@@ -2,11 +2,11 @@ using FluentAssertions;
 using MealPlanner.Application.DTOs;
 using MealPlanner.Application.Services;
 using MealPlanner.Domain.Entities;
-using MealPlanner.Domain.Enums;
 using MealPlanner.Domain.Interfaces;
 using MealPlanner.Domain.Services;
 using MealPlanner.Domain.ValueObjects;
 using NSubstitute;
+using DomainEnums = MealPlanner.Domain.Enums;
 
 namespace MealPlanner.Application.Tests;
 
@@ -185,6 +185,19 @@ public class FridgeServiceTests
     }
 
     /// <summary>
+    /// Ensures ClearAllAsync delegates to the repository's ClearAllAsync so that
+    /// all fridge items are removed in a single operation.
+    /// </summary>
+    [Test]
+    public async Task ClearAllAsync_CallsRepositoryClearAllAsync()
+    {
+        // Ensures ClearAllAsync delegates to the repository
+        await _sut.ClearAllAsync();
+
+        await _fridgeRepository.Received(1).ClearAllAsync(Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
     /// Ensures GetSuggestionsAsync wires the real RecipeMatcher with live fridge
     /// and recipe data, returning suggestions with a non-zero match percentage when
     /// the fridge contains ingredients required by a recipe.
@@ -193,11 +206,11 @@ public class FridgeServiceTests
     public async Task GetSuggestionsAsync_ReturnsSuggestionsFromRecipeMatcher()
     {
         // Ensures suggestions are computed from the real RecipeMatcher using fridge and recipe data
-        var ingredient = new RecipeIngredient("Eggs", 3m, string.Empty, ShoppingCategory.Dairy, false);
+        var ingredient = new RecipeIngredient("Eggs", 3m, string.Empty, DomainEnums.ShoppingCategory.Dairy, false);
         var recipe = Recipe.Create(
             "Scrambled Eggs",
             "Simple scrambled eggs",
-            RecipeCategory.Breakfast,
+            DomainEnums.RecipeCategory.Breakfast,
             2,
             5,
             10,

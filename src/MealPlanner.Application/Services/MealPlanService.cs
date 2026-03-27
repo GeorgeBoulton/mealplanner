@@ -2,6 +2,7 @@ using MealPlanner.Application.DTOs;
 using MealPlanner.Application.Interfaces;
 using MealPlanner.Domain.Entities;
 using MealPlanner.Domain.Interfaces;
+using DomainEnums = MealPlanner.Domain.Enums;
 
 namespace MealPlanner.Application.Services;
 
@@ -61,7 +62,7 @@ public class MealPlanService : IMealPlanService
         ValidateEntryDate(request.Date, mealPlan.WeekStartDate);
         ValidateServings(request.Servings);
 
-        var entry = MealPlanEntry.Create(mealPlan.Id, request.Date, request.MealType, request.RecipeId, request.Servings);
+        var entry = MealPlanEntry.Create(mealPlan.Id, request.Date, (DomainEnums.MealType)(int)request.MealType, request.RecipeId, request.Servings);
         mealPlan.AddEntry(entry);
         await _mealPlanRepository.UpdateAsync(mealPlan, ct);
         return MapToResponse(mealPlan);
@@ -77,7 +78,7 @@ public class MealPlanService : IMealPlanService
         ValidateServings(request.Servings);
 
         mealPlan.RemoveEntry(entryId);
-        var entry = MealPlanEntry.Create(mealPlan.Id, request.Date, request.MealType, request.RecipeId, request.Servings);
+        var entry = MealPlanEntry.Create(mealPlan.Id, request.Date, (DomainEnums.MealType)(int)request.MealType, request.RecipeId, request.Servings);
         mealPlan.AddEntry(entry);
         await _mealPlanRepository.UpdateAsync(mealPlan, ct);
         return MapToResponse(mealPlan);
@@ -120,7 +121,7 @@ public class MealPlanService : IMealPlanService
             mealPlan.Id,
             mealPlan.WeekStartDate,
             mealPlan.Entries
-                .Select(e => new MealPlanEntryResponse(e.Id, e.Date, e.MealType, e.RecipeId, e.Servings))
+                .Select(e => new MealPlanEntryResponse(e.Id, e.Date, (MealType)(int)e.MealType, e.RecipeId, e.Servings))
                 .ToList(),
             mealPlan.CreatedAt);
 }

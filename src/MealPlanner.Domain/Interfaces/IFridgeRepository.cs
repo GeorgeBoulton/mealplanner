@@ -9,4 +9,5 @@ public interface IFridgeRepository
     Task AddAsync(FridgeItem item, CancellationToken ct = default);
     Task UpdateAsync(FridgeItem item, CancellationToken ct = default);
     Task DeleteAsync(Guid id, CancellationToken ct = default);
+    Task ClearAllAsync(CancellationToken ct = default);
 }

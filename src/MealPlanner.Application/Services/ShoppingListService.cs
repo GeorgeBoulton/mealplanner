@@ -2,9 +2,9 @@ using System.Text;
 using MealPlanner.Application.DTOs;
 using MealPlanner.Application.Interfaces;
 using MealPlanner.Domain.Entities;
-using MealPlanner.Domain.Enums;
 using MealPlanner.Domain.Interfaces;
 using MealPlanner.Domain.Services;
+using DomainEnums = MealPlanner.Domain.Enums;
 
 namespace MealPlanner.Application.Services;
 
@@ -150,22 +150,22 @@ public class ShoppingListService : IShoppingListService
             : quantity.ToString("0.##");
     }
 
-    private static string GetCategoryHeader(ShoppingCategory category) => category switch
+    private static string GetCategoryHeader(DomainEnums.ShoppingCategory category) => category switch
     {
-        ShoppingCategory.FruitAndVeg  => "\U0001f966 Fruit & Veg",
-        ShoppingCategory.Meat         => "\U0001f969 Meat",
-        ShoppingCategory.Fish         => "\U0001f41f Fish",
-        ShoppingCategory.Dairy        => "\U0001f95b Dairy",
-        ShoppingCategory.Bakery       => "\U0001f35e Bakery",
-        ShoppingCategory.Tinned       => "\U0001f96b Tinned",
-        ShoppingCategory.Dried        => "\U0001f33e Dried",
-        ShoppingCategory.Frozen       => "\U0001f9ca Frozen",
-        ShoppingCategory.Condiments   => "\U0001fad9 Condiments",
-        ShoppingCategory.Drinks       => "\U0001f964 Drinks",
-        ShoppingCategory.Snacks       => "\U0001f37f Snacks",
-        ShoppingCategory.Household    => "\U0001f9f9 Household",
-        ShoppingCategory.Other        => "\U0001f4e6 Other",
-        _                             => category.ToString()
+        DomainEnums.ShoppingCategory.FruitAndVeg  => "\U0001f966 Fruit & Veg",
+        DomainEnums.ShoppingCategory.Meat         => "\U0001f969 Meat",
+        DomainEnums.ShoppingCategory.Fish         => "\U0001f41f Fish",
+        DomainEnums.ShoppingCategory.Dairy        => "\U0001f95b Dairy",
+        DomainEnums.ShoppingCategory.Bakery       => "\U0001f35e Bakery",
+        DomainEnums.ShoppingCategory.Tinned       => "\U0001f96b Tinned",
+        DomainEnums.ShoppingCategory.Dried        => "\U0001f33e Dried",
+        DomainEnums.ShoppingCategory.Frozen       => "\U0001f9ca Frozen",
+        DomainEnums.ShoppingCategory.Condiments   => "\U0001fad9 Condiments",
+        DomainEnums.ShoppingCategory.Drinks       => "\U0001f964 Drinks",
+        DomainEnums.ShoppingCategory.Snacks       => "\U0001f37f Snacks",
+        DomainEnums.ShoppingCategory.Household    => "\U0001f9f9 Household",
+        DomainEnums.ShoppingCategory.Other        => "\U0001f4e6 Other",
+        _                                         => category.ToString()
     };
 
     private static ShoppingListResponse MapToResponse(ShoppingList shoppingList)
@@ -178,7 +178,7 @@ public class ShoppingListService : IShoppingListService
                     i.IngredientName,
                     i.TotalQuantity,
                     i.Unit,
-                    i.Category,
+                    (ShoppingCategory)(int)i.Category,
                     i.IsChecked,
                     i.FromRecipes.ToList()))
                 .ToList(),

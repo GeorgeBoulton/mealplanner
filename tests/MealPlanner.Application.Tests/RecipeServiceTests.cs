@@ -2,12 +2,12 @@ using FluentAssertions;
 using MealPlanner.Application.DTOs;
 using MealPlanner.Application.Services;
 using MealPlanner.Domain.Entities;
-using MealPlanner.Domain.Enums;
 using MealPlanner.Domain.Interfaces;
 using MealPlanner.Domain.Models;
 using MealPlanner.Domain.Services;
 using MealPlanner.Domain.ValueObjects;
 using NSubstitute;
+using DomainEnums = MealPlanner.Domain.Enums;
 
 namespace MealPlanner.Application.Tests;
 
@@ -32,12 +32,12 @@ public class RecipeServiceTests
 
     // -- helpers --
 
-    private static Recipe BuildRecipe(string name = "Pasta", RecipeCategory category = RecipeCategory.Dinner,
+    private static Recipe BuildRecipe(string name = "Pasta", DomainEnums.RecipeCategory category = DomainEnums.RecipeCategory.Dinner,
         IEnumerable<RecipeIngredient>? ingredients = null)
         => Recipe.Create(name, null, category, 2, 10, 20, "Cook it.", null, ingredients);
 
     private static RecipeIngredient Ingredient(string name, bool optional = false)
-        => new(name, 1, "unit", ShoppingCategory.FruitAndVeg, optional);
+        => new(name, 1, "unit", DomainEnums.ShoppingCategory.FruitAndVeg, optional);
 
     // -------------------------------------------------------------------------
 
@@ -192,7 +192,7 @@ public class RecipeServiceTests
             "Tacos", "Mexican tacos",
             new List<ScrapedIngredient>
             {
-                new("2 tortillas", "Tortilla", 2, "pcs", ShoppingCategory.Dried, false)
+                new("2 tortillas", "Tortilla", 2, "pcs", DomainEnums.ShoppingCategory.Dried, false)
             },
             "Assemble and serve.",
             5, 10, 2, "Dinner",

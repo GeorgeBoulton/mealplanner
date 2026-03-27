@@ -2,11 +2,11 @@ using FluentAssertions;
 using MealPlanner.Application.DTOs;
 using MealPlanner.Application.Services;
 using MealPlanner.Domain.Entities;
-using MealPlanner.Domain.Enums;
 using MealPlanner.Domain.Interfaces;
 using MealPlanner.Domain.Services;
 using MealPlanner.Domain.ValueObjects;
 using NSubstitute;
+using DomainEnums = MealPlanner.Domain.Enums;
 
 namespace MealPlanner.Application.Tests;
 
@@ -45,19 +45,19 @@ public class ShoppingListServiceTests
         string name = "Pasta",
         int servings = 2,
         IEnumerable<RecipeIngredient>? ingredients = null)
-        => Recipe.Create(name, null, RecipeCategory.Dinner, servings, 10, 20, "Cook.", null, ingredients);
+        => Recipe.Create(name, null, DomainEnums.RecipeCategory.Dinner, servings, 10, 20, "Cook.", null, ingredients);
 
     private static RecipeIngredient Ingredient(
         string name,
         decimal quantity = 1,
         string unit = "kg",
-        ShoppingCategory category = ShoppingCategory.FruitAndVeg,
+        DomainEnums.ShoppingCategory category = DomainEnums.ShoppingCategory.FruitAndVeg,
         bool optional = false)
         => new(name, quantity, unit, category, optional);
 
     private static ShoppingList BuildShoppingList(Guid mealPlanId)
     {
-        var item = ShoppingListItem.Create(Guid.Empty, "Onion", 2, "kg", ShoppingCategory.FruitAndVeg);
+        var item = ShoppingListItem.Create(Guid.Empty, "Onion", 2, "kg", DomainEnums.ShoppingCategory.FruitAndVeg);
         return ShoppingList.Create(mealPlanId, new[] { item });
     }
 
@@ -90,15 +90,15 @@ public class ShoppingListServiceTests
 
         var recipe1 = BuildRecipe("Pasta", servings: 2, ingredients: new[]
         {
-            Ingredient("Onion", 1, "kg", ShoppingCategory.FruitAndVeg)
+            Ingredient("Onion", 1, "kg", DomainEnums.ShoppingCategory.FruitAndVeg)
         });
         var recipe2 = BuildRecipe("Soup", servings: 4, ingredients: new[]
         {
-            Ingredient("Carrot", 2, "kg", ShoppingCategory.FruitAndVeg)
+            Ingredient("Carrot", 2, "kg", DomainEnums.ShoppingCategory.FruitAndVeg)
         });
 
-        var entry1 = MealPlanEntry.Create(mealPlan.Id, mealPlan.WeekStartDate, MealType.Dinner, recipe1.Id, 2);
-        var entry2 = MealPlanEntry.Create(mealPlan.Id, mealPlan.WeekStartDate.AddDays(1), MealType.Lunch, recipe2.Id, 4);
+        var entry1 = MealPlanEntry.Create(mealPlan.Id, mealPlan.WeekStartDate, DomainEnums.MealType.Dinner, recipe1.Id, 2);
+        var entry2 = MealPlanEntry.Create(mealPlan.Id, mealPlan.WeekStartDate.AddDays(1), DomainEnums.MealType.Lunch, recipe2.Id, 4);
         mealPlan.AddEntry(entry1);
         mealPlan.AddEntry(entry2);
 
@@ -284,9 +284,9 @@ public class ShoppingListServiceTests
     {
         var mealPlanId = Guid.NewGuid();
 
-        var vegItem  = ShoppingListItem.Create(Guid.Empty, "Onion",  2,   "kg", ShoppingCategory.FruitAndVeg);
-        var meatItem = ShoppingListItem.Create(Guid.Empty, "Chicken", 0.5m, "kg", ShoppingCategory.Meat);
-        var dairyItem = ShoppingListItem.Create(Guid.Empty, "Milk", 1, "l", ShoppingCategory.Dairy);
+        var vegItem  = ShoppingListItem.Create(Guid.Empty, "Onion",  2,   "kg", DomainEnums.ShoppingCategory.FruitAndVeg);
+        var meatItem = ShoppingListItem.Create(Guid.Empty, "Chicken", 0.5m, "kg", DomainEnums.ShoppingCategory.Meat);
+        var dairyItem = ShoppingListItem.Create(Guid.Empty, "Milk", 1, "l", DomainEnums.ShoppingCategory.Dairy);
 
         var shoppingList = ShoppingList.Create(mealPlanId, new[] { vegItem, meatItem, dairyItem });
 
