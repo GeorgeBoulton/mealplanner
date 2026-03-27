@@ -47,7 +47,7 @@
 - [x] Build shopping list page with tick-off and export per specs/blazor-frontend.md
 - [x] Build "What can I make?" suggestions page per specs/blazor-frontend.md
 - [x] Build navigation layout (sidebar/top nav) per specs/blazor-frontend.md
-- [ ] Responsive polish — verify all pages work on mobile
+- [x] Responsive polish — verify all pages work on mobile
 
 ### Phase 7: Deployment
 - [x] Create Dockerfiles for API and Web projects
@@ -80,6 +80,7 @@
 
 ## Known issues
 - tag, page, pageSize query params on GET /api/recipes accepted but not forwarded to service (service interface doesn't support them)
+- 5 pre-existing API integration test failures (MealPlanner.Api.Tests): AddEntry_WithValidRequest_Returns201, Create_WithMissingName_Returns400 (RecipesController), Create_WithMissingInstructions_Returns400 (RecipesController), Export_WithExistingId_ReturnsPlainText, UpdateItem_ToggleChecked_Returns204 — these failures predate the responsive polish changes
 
 ## Resolved issues
 - ~~DELETE /api/fridge (clear all) not implemented — IFridgeService has no ClearAllAsync method~~ — fixed: ClearAllAsync added to IFridgeService, FridgeService, IFridgeRepository, FridgeRepository, and FridgeController; returns 204 NoContent

@@ -80,7 +80,7 @@
 
                 <!-- Category + Servings row -->
                 <div class="row g-3 mb-3">
-                    <div class="col-sm-6">
+                    <div class="col-12 col-sm-6">
                         <label class="form-label fw-semibold" for="recipeCategory">Category</label>
                         <select id="recipeCategory" class="form-select" @bind="category">
                             @foreach (var cat in AllCategories)
@@ -89,7 +89,7 @@
                             }
                         </select>
                     </div>
-                    <div class="col-sm-6">
+                    <div class="col-12 col-sm-6">
                         <label class="form-label fw-semibold" for="recipeServings">Servings <span class="text-danger">*</span></label>
                         <input id="recipeServings"
                                type="number"
@@ -106,7 +106,7 @@
 
                 <!-- Prep + Cook time row -->
                 <div class="row g-3 mb-3">
-                    <div class="col-sm-6">
+                    <div class="col-12 col-sm-6">
                         <label class="form-label fw-semibold" for="recipePrepTime">Prep Time (minutes)</label>
                         <input id="recipePrepTime"
                                type="number"
@@ -115,7 +115,7 @@
                                @bind="prepTimeMinutes"
                                @bind:event="oninput" />
                     </div>
-                    <div class="col-sm-6">
+                    <div class="col-12 col-sm-6">
                         <label class="form-label fw-semibold" for="recipeCookTime">Cook Time (minutes)</label>
                         <input id="recipeCookTime"
                                type="number"

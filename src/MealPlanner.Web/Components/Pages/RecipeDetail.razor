@@ -80,7 +80,7 @@
                         <div class="alert alert-success py-2">Recipe added to meal plan!</div>
                     }
                     <div class="row g-3 align-items-end">
-                        <div class="col-sm-4">
+                        <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" for="mealPlanDate">Date</label>
                             <input id="mealPlanDate"
                                    type="date"
@@ -88,7 +88,7 @@
                                    @bind="mealPlanDate"
                                    min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" for="mealType">Meal Type</label>
                             <select id="mealType" class="form-select" @bind="mealPlanMealType">
                                 @foreach (var mt in AllMealTypes)
@@ -97,7 +97,7 @@
                                 }
                             </select>
                         </div>
-                        <div class="col-sm-2">
+                        <div class="col-12 col-sm-2">
                             <label class="form-label fw-semibold" for="mealServings">Servings</label>
                             <input id="mealServings"
                                    type="number"
@@ -105,7 +105,7 @@
                                    min="1"
                                    @bind="mealPlanServings" />
                         </div>
-                        <div class="col-sm-2">
+                        <div class="col-12 col-sm-2">
                             <button class="btn btn-success w-100"
                                     @onclick="AddToMealPlan"
                                     disabled="@isAddingToMealPlan">
