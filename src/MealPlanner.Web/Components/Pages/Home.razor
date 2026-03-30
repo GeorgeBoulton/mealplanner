@@ -1,7 +1,149 @@
-﻿@page "/"
+@page "/"
+@rendermode InteractiveServer
+@inject RecipeApiClient RecipeApi
+@inject MealPlanApiClient MealPlanApi
+@inject FridgeApiClient FridgeApi
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Meal Planner</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="container-fluid py-4">
 
-Welcome to your new app.
+    <div class="mb-4">
+        <h1 class="h2 mb-1">@Greeting</h1>
+        <p class="text-muted mb-0">@DateTime.Today.ToString("dddd, d MMMM yyyy")</p>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <a href="/recipes" class="text-decoration-none">
+                <div class="stat-card">
+                    <div class="stat-icon">🍽️</div>
+                    <div class="stat-value">@(isLoading ? "—" : recipeCount.ToString())</div>
+                    <div class="stat-label">Recipes</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="/mealplan" class="text-decoration-none">
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-value">@(isLoading ? "—" : todayMeals.Count.ToString())</div>
+                    <div class="stat-label">Meals Today</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="/suggestions" class="text-decoration-none">
+                <div class="stat-card">
+                    <div class="stat-icon">🧊</div>
+                    <div class="stat-value">@(isLoading ? "—" : fridgeCount.ToString())</div>
+                    <div class="stat-label">Fridge Items</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="/shopping-list" class="text-decoration-none">
+                <div class="stat-card">
+                    <div class="stat-icon">🛒</div>
+                    <div class="stat-label-only">Shopping List</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Today's meals -->
+    <div class="row g-4">
+        <div class="col-12 col-lg-7">
+            <div class="section-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h5 mb-0">Today's Meals</h2>
+                    <a href="/mealplan" class="btn btn-sm btn-outline-primary">View Plan</a>
+                </div>
+
+                @if (isLoading)
+                {
+                    <div class="d-flex justify-content-center py-4">
+                        <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+                    </div>
+                }
+                else if (todayMeals.Count == 0)
+                {
+                    <div class="empty-state">
+                        <p class="mb-2">Nothing planned for today.</p>
+                        <a href="/mealplan" class="btn btn-primary btn-sm">Plan meals</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="meal-list">
+                        @foreach (var (meal, recipe) in todayMeals)
+                        {
+                            <div class="meal-row">
+                                <span class="meal-type-badge">@meal.MealType</span>
+                                <span class="meal-name">@(recipe?.Name ?? "Unknown Recipe")</span>
+                                <span class="meal-servings text-muted small">×&nbsp;@meal.Servings</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="col-12 col-lg-5">
+            <div class="section-card">
+                <h2 class="h5 mb-3">Quick Actions</h2>
+                <div class="d-grid gap-2">
+                    <a href="/recipes/new" class="btn btn-primary">+ Add Recipe</a>
+                    <a href="/mealplan" class="btn btn-outline-primary">Plan This Week</a>
+                    <a href="/suggestions" class="btn btn-outline-secondary">What Can I Make?</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    private bool isLoading = true;
+    private int recipeCount;
+    private int fridgeCount;
+    private List<(MealPlanEntryResponse meal, RecipeResponse? recipe)> todayMeals = [];
+
+    private static string Greeting
+    {
+        get
+        {
+            var hour = DateTime.Now.Hour;
+            return hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        var recipesTask = RecipeApi.GetRecipesAsync(page: 1, pageSize: 500);
+        var planTask = MealPlanApi.GetCurrentMealPlanAsync();
+        var fridgeTask = FridgeApi.GetFridgeItemsAsync();
+
+        await Task.WhenAll(recipesTask, planTask, fridgeTask);
+
+        var allRecipes = recipesTask.Result;
+        recipeCount = allRecipes.Count;
+        fridgeCount = fridgeTask.Result.Count;
+
+        var plan = planTask.Result;
+        if (plan != null)
+        {
+            todayMeals = plan.Entries
+                .Where(e => e.Date == today)
+                .OrderBy(e => e.MealType)
+                .Select(e => (e, allRecipes.FirstOrDefault(r => r.Id == e.RecipeId)))
+                .ToList();
+        }
+
+        isLoading = false;
+    }
+}

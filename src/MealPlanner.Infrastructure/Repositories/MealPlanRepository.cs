@@ -43,7 +43,11 @@ public class MealPlanRepository : IMealPlanRepository
 
     public async Task UpdateAsync(MealPlan mealPlan, CancellationToken ct = default)
     {
-        _context.Update(mealPlan);
+        foreach (var entry in mealPlan.Entries)
+        {
+            if (_context.Entry(entry).State == EntityState.Detached)
+                _context.MealPlanEntries.Add(entry);
+        }
         await _context.SaveChangesAsync(ct);
     }
 
