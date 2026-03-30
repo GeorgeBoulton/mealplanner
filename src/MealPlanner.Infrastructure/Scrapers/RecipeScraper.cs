@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 using MealPlanner.Domain.Enums;
+using MealPlanner.Domain.Exceptions;
 using MealPlanner.Domain.Interfaces;
 using MealPlanner.Domain.Models;
 
@@ -18,7 +19,20 @@ public class RecipeScraper : IRecipeScraper
 
     public async Task<ScrapedRecipe> ScrapeAsync(string url, CancellationToken ct = default)
     {
-        var html = await _httpClient.GetStringAsync(url, ct);
+        string html;
+        try
+        {
+            html = await _httpClient.GetStringAsync(url, ct);
+        }
+        catch (TaskCanceledException)
+        {
+            throw new RecipeScrapingException($"Request timed out for URL: {url}");
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new RecipeScrapingException($"Failed to fetch the URL: {url}. {ex.Message}");
+        }
+
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
@@ -29,7 +43,7 @@ public class RecipeScraper : IRecipeScraper
         }
 
         return TryFallbackScrape(doc, url)
-            ?? throw new InvalidOperationException(
+            ?? throw new RecipeScrapingException(
                 $"Could not parse recipe from '{url}'. The page does not contain recognisable recipe data. Please enter the recipe manually.");
     }
 

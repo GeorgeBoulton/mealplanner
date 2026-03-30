@@ -82,7 +82,7 @@
 
 - [ ] **Meal plan mobile layout** — the week table is a horizontal scroll on mobile, hard to use. Consider a day-by-day stacked view on small screens instead.
 - [ ] **Numbered list for recipe instructions** — instructions are stored/displayed as a plain text blob. Support a numbered list format (either newline-delimited steps or markdown-style) so users can enter and read step-by-step instructions clearly.
-- [ ] **500 error on recipe import** — POST to `/api/recipes/import` returns 500. Check RecipesController Import action, RecipeScraper (JSON-LD parsing), and any unhandled exceptions for URLs that don't match expected schema.
+- [x] **500 error on recipe import** — fixed: RecipeScraper now throws RecipeScrapingException for network/parse failures; RecipesController.Import catches it and returns 422 with a helpful message
 
 ## Known issues
 - tag, page, pageSize query params on GET /api/recipes accepted but not forwarded to service (service interface doesn't support them)

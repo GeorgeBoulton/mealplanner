@@ -1,5 +1,6 @@
 using MealPlanner.Application.DTOs;
 using MealPlanner.Application.Interfaces;
+using MealPlanner.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MealPlanner.Api.Controllers;
@@ -76,7 +77,14 @@ public class RecipesController : ControllerBase
     [HttpPost("import")]
     public async Task<IActionResult> Import([FromBody] ImportRecipeRequest request)
     {
-        var result = await _recipeService.ImportAsync(request, HttpContext.RequestAborted);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        try
+        {
+            var result = await _recipeService.ImportAsync(request, HttpContext.RequestAborted);
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+        catch (RecipeScrapingException ex)
+        {
+            return Problem(detail: ex.Message, statusCode: 422);
+        }
     }
 }
